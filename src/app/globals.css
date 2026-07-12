@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-dark: #0b0f19;
+  --color-panel-dark: #111827;
+  --color-panel-light: #1f2937;
+  --color-border-dark: #1f2937;
+  
+  --color-tg: #0ea5e9;
+  --color-tg-dark: #0284c7;
+  --color-ig-violet: #7c3aed;
+  --color-ig-pink: #db2777;
+  --color-ig-orange: #f59e0b;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  
+  --font-display: var(--font-unbounded), sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
+
+  --animate-pulse-ring: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-marquee: marquee 28s linear infinite;
+  --animate-blink: blink 1.2s infinite ease-in-out;
+  --animate-fade-up: fade-up 0.4s ease both;
+
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.35); }
+    70% { box-shadow: 0 0 0 14px rgba(124, 58, 237, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.3; }
+    40% { opacity: 1; }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+:root {
+  scroll-behavior: smooth;
+  --background: #090d16;
+  --foreground: #f8fafc;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Custom Utilities for Premium Visuals */
+.bg-noise {
+  background-image: 
+    radial-gradient(circle at 15% 20%, rgba(14, 165, 233, 0.12), transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(219, 39, 119, 0.10), transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(124, 58, 237, 0.08), transparent 60%);
+}
+
+.grad-ig {
+  background: linear-gradient(135deg, var(--color-ig-orange), var(--color-ig-pink) 50%, var(--color-ig-violet));
+}
+
+.grad-tg {
+  background: linear-gradient(135deg, var(--color-tg), var(--color-tg-dark));
+}
+
+.text-grad-mix {
+  background: linear-gradient(90deg, var(--color-tg) 0%, var(--color-ig-violet) 55%, var(--color-ig-pink) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card-premium {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary-glow {
+  background: linear-gradient(90deg, var(--color-tg) 0%, var(--color-ig-violet) 100%);
+  box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4);
+  transition: transform .25s ease, box-shadow .35s ease;
+}
+
+.btn-primary-glow:hover {
+  transform: translateY(-2.5px);
+  box-shadow: 0 12px 32px -8px rgba(124, 58, 237, 0.5);
+}
+
+::selection {
+  background: rgba(124, 58, 237, 0.3);
+  color: #ffffff;
+}
+
+/* Custom Scrollbar for simulated Phone */
+.phone-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.phone-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.phone-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+.phone-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
