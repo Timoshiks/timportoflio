@@ -350,15 +350,11 @@ export default function Simulator() {
                       {/* Comments Strip (goes to comments view!) */}
                       <div 
                         onClick={() => setView("comments")}
-                        className="border-t border-slate-100 px-3 py-2 flex items-center justify-between bg-slate-50/50 hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+                        className="border-t border-slate-100 px-3.5 py-2.5 flex items-center justify-between hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
                       >
-                        <div className="flex items-center gap-1.5">
-                          <div className="flex -space-x-1.5 select-none">
-                            <div className="w-4.5 h-4.5 rounded-full border border-white bg-indigo-400 flex items-center justify-center text-[7px] font-bold text-white shrink-0">A</div>
-                            <div className="w-4.5 h-4.5 rounded-full border border-white bg-rose-400 flex items-center justify-center text-[7px] font-bold text-white shrink-0">M</div>
-                            <div className="w-4.5 h-4.5 rounded-full border border-white bg-emerald-500 flex items-center justify-center text-[7px] font-bold text-white shrink-0">K</div>
-                          </div>
-                          <span className="text-[10px] text-tg font-bold">15 комментариев</span>
+                        <div className="flex items-center gap-2 text-tg font-semibold">
+                          <MessageCircle className="w-4 h-4 text-tg" />
+                          <span className="text-[10px] text-tg">Прокомментировать</span>
                         </div>
                         <ChevronLeft className="w-3.5 h-3.5 text-tg rotate-180" />
                       </div>
@@ -367,6 +363,28 @@ export default function Simulator() {
                     {/* Floating Share Button */}
                     <button className="w-8 h-8 rounded-full bg-[#75B079] hover:bg-[#649c68] text-white flex items-center justify-center shrink-0 cursor-pointer shadow-sm select-none">
                       <CornerUpRight className="w-3.5 h-3.5 translate-x-[1px]" />
+                    </button>
+                  </div>
+
+                  {/* Subscribed Label Info */}
+                  <div className="text-center my-1 select-none">
+                    <span className="bg-slate-900/30 text-white text-[8px] font-medium px-3.5 py-0.5 rounded-full">
+                      Вы подписались на этот канал
+                    </span>
+                  </div>
+
+                  {/* Sponsored Advertisement Card */}
+                  <div className="bg-sky-50/70 border border-sky-100 rounded-xl p-3 shadow-3xs relative text-left select-none mb-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[8px] font-bold text-[#24A1DE] uppercase tracking-wider">Реклама</span>
+                      <button className="text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
+                    </div>
+                    <p className="text-[9px] font-bold text-slate-800 mb-0.5">🔥 Увеличьте ваши продажи на 300%</p>
+                    <p className="text-[8px] text-slate-500 leading-normal mb-2">
+                      Закажите разработку Telegram Mini App каталога сегодня и получите скидку 15% на первый месяц поддержки.
+                    </p>
+                    <button onClick={handleOpenCatalog} className="w-full bg-[#24A1DE] hover:bg-[#1a85b9] text-white py-1.5 rounded-lg text-[9px] font-bold text-center transition-colors cursor-pointer uppercase">
+                      Открыть каталог
                     </button>
                   </div>
                 </div>
