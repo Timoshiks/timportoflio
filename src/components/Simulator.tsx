@@ -5,7 +5,8 @@ import {
   ShoppingBag, Plus, Check, ArrowRight, ChevronLeft, 
   User, RotateCcw, Shirt, Crown, 
   Search, MoreVertical, X, Sparkles, CornerUpRight,
-  MessageCircle, LifeBuoy, Heart, Smile, Paperclip, Send
+  MessageCircle, LifeBuoy, Heart, Smile, Paperclip, Send,
+  Volume2, HelpCircle, Home, Grid, ChevronDown
 } from "lucide-react";
 
 interface Product {
@@ -51,9 +52,8 @@ interface Post {
   views: string;
   time: string;
   reactions: {
-    star: { count: number; active: boolean };
+    star: { active: boolean };
     heart: { count: number; active: boolean };
-    fire: { count: number; active: boolean };
   };
   hasCatalogLink?: boolean;
   isPinned?: boolean;
@@ -77,48 +77,6 @@ export default function Simulator() {
   // Search States
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Channel Posts State
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: 101,
-      title: "📌 Гайд по выбору размера одежды",
-      text: "Чтобы заказать худи, кроссовки или кепку, используйте нашу размерную сетку:\n\n• Худи: XS (44), S (46), M (48), L (50), XL (52).\n• Кроссовки: 40 (26см), 41 (26.5см), 42 (27см), 43 (28см), 44 (28.5см).\n• Кепка: регулируемый размер.",
-      views: "10.4K",
-      time: "12:05",
-      reactions: {
-        star: { count: 12, active: false },
-        heart: { count: 45, active: false },
-        fire: { count: 8, active: false }
-      },
-      isPinned: true
-    },
-    {
-      id: 102,
-      title: "🔥 Скидка 10% на первый заказ!",
-      text: "Дарим приветственную скидку на ваш первый заказ в нашем мини-приложении! Перейдите в каталог по ссылке ниже, выберите товары, и скидка START10 применится в корзине автоматически.",
-      views: "15.2K",
-      time: "14:20",
-      reactions: {
-        star: { count: 4, active: false },
-        heart: { count: 122, active: false },
-        fire: { count: 89, active: false }
-      }
-    },
-    {
-      id: 103,
-      title: "Почему Mini App?",
-      text: "Покупка в 3 клика без перехода во внешние браузеры. Каждый лишний переход — это потеря клиента. Внутри Telegram конверсия возрастает в 3 раза!\n\nЧто делать?\nЗапустить каталог, который открывается мгновенно.\n\nЛови 👉 Открыть каталог 🛍",
-      views: "27.8K",
-      time: "19:48",
-      reactions: {
-        star: { count: 58, active: false },
-        heart: { count: 407, active: false },
-        fire: { count: 24, active: false }
-      },
-      hasCatalogLink: true
-    }
-  ]);
 
   const [chatStatus, setChatStatus] = useState<"в сети" | "печатает…">("в сети");
   const [showTyping, setShowTyping] = useState(false);
@@ -180,28 +138,22 @@ export default function Simulator() {
     setSelectedSize("");
   };
 
-  const handleToggleReaction = (postId: number, type: "star" | "heart" | "fire") => {
-    setPosts(prevPosts => 
-      prevPosts.map(post => {
-        if (post.id !== postId) return post;
-        const currentReaction = post.reactions[type];
-        return {
-          ...post,
-          reactions: {
-            ...post.reactions,
-            [type]: {
-              count: currentReaction.active ? currentReaction.count - 1 : currentReaction.count + 1,
-              active: !currentReaction.active
-            }
-          }
-        };
-      })
-    );
+  const [starActive, setStarActive] = useState(false);
+  const [heartCount, setHeartCount] = useState(407);
+  const [heartActive, setHeartActive] = useState(false);
+
+  const handleHeartClick = () => {
+    if (heartActive) {
+      setHeartCount(prev => prev - 1);
+      setHeartActive(false);
+    } else {
+      setHeartCount(prev => prev + 1);
+      setHeartActive(true);
+    }
   };
 
   const handlePinnedClick = () => {
-    // Scrolls to the pinned post (ID 101) inside the scroll viewport
-    const pinnedPostEl = document.getElementById("post-101");
+    const pinnedPostEl = document.getElementById("post-drop");
     if (pinnedPostEl) {
       pinnedPostEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
       showToast("Переход к закрепленному сообщению");
@@ -260,15 +212,12 @@ export default function Simulator() {
     setAdVisible(true);
     setSearchOpen(false);
     setSearchQuery("");
+    setStarActive(false);
+    setHeartCount(407);
+    setHeartActive(false);
     if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
     if (replyTimerRef.current) clearTimeout(replyTimerRef.current);
   };
-
-  // Filter posts based on search query
-  const filteredPosts = posts.filter(post => 
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    post.text.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <section id="simulator" className="relative py-24 px-6 max-w-7xl mx-auto border-t border-slate-200/80">
@@ -316,7 +265,7 @@ export default function Simulator() {
                     : "opacity-0 scale-95 pointer-events-none"
                 }`}
               >
-                {/* Channel App Header */}
+                {/* Channel App Header (Urban Store Branding) */}
                 <div className="bg-white border-b border-slate-100 py-2 px-4 flex items-center justify-between shrink-0 select-none">
                   <div className="flex items-center gap-2.5">
                     <ChevronLeft className="w-5 h-5 text-tg cursor-pointer" />
@@ -326,9 +275,9 @@ export default function Simulator() {
                     <div className="text-left">
                       <p className="font-semibold text-xs leading-tight text-slate-900 flex items-center gap-1">
                         Urban Store 
-                        <span className="w-2.5 h-2.5 bg-tg rounded-full inline-flex items-center justify-center"><Check className="w-1.5 h-1.5 text-white" /></span>
+                        <span className="w-3 h-3 bg-tg rounded-full inline-flex items-center justify-center"><Check className="w-2 h-2 text-white" /></span>
                       </p>
-                      <p className="text-[10px] text-slate-400 leading-tight font-mono">14.2K подписчиков</p>
+                      <p className="text-[10px] text-slate-400 leading-tight font-mono font-sans">14 200 подписчиков</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-slate-500">
@@ -362,17 +311,17 @@ export default function Simulator() {
                     <div className="flex flex-col text-left">
                       <span className="text-[9px] text-tg font-bold leading-tight">Закрепленное сообщение</span>
                       <span className="text-[8px] text-slate-500 truncate max-w-[190px] leading-tight font-medium">
-                        📌 Гайд по выбору размера одежды
+                        🔥 Дроп Urban Wear 2026: Выбирайте размеры товаров...
                       </span>
                     </div>
                   </div>
-                  <X className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 shrink-0" />
+                  <Volume2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 </div>
 
                 {/* Feed (aligned to bottom, no empty bottom spacing!) */}
                 <div 
                   ref={feedRef}
-                  className="flex-1 bg-tg-wallpaper p-3 overflow-y-auto phone-scrollbar flex flex-col justify-start space-y-4"
+                  className="flex-1 bg-tg-wallpaper p-3 overflow-y-auto phone-scrollbar flex flex-col justify-end space-y-4"
                 >
                   {/* Day Separator */}
                   <div className="text-center my-1.5">
@@ -381,117 +330,136 @@ export default function Simulator() {
                     </span>
                   </div>
 
-                  {/* Render Posts List */}
-                  {filteredPosts.map((post) => (
-                    <div 
-                      key={post.id}
-                      id={`post-${post.id}`}
-                      className="flex items-end gap-1.5 max-w-full"
-                    >
-                      <div className="bg-white rounded-2xl rounded-tr-none border border-slate-200/80 shadow-xs flex-grow overflow-hidden text-left">
-                        <div className="p-3">
-                          <h4 className="font-bold text-[10px] text-slate-800 mb-1">{post.title}</h4>
-                          <p className="text-[9.5px] text-slate-600 leading-normal whitespace-pre-wrap">
-                            {post.text.split("Открыть каталог 🛍")[0]}
-                            {post.hasCatalogLink && (
-                              <span onClick={handleOpenCatalog} className="text-tg font-bold underline hover:text-tg-dark cursor-pointer inline-flex items-center gap-0.5">Открыть каталог 🛍</span>
-                            )}
-                          </p>
-
-                          {/* Bottom Info & Views */}
-                          <div className="flex items-center justify-between text-[8px] text-slate-400 font-medium select-none mt-3.5 border-t border-slate-100/50 pt-2">
-                            <span className="flex items-center gap-1">
-                              <span>{post.views} views</span>
-                              <span>·</span>
-                              <span>Urban Store</span>
-                            </span>
-                            <span>{post.time}</span>
-                          </div>
-
-                          {/* Reactions Block */}
-                          <div className="flex items-center gap-1.5 mt-2.5 select-none">
-                            <button 
-                              onClick={() => handleToggleReaction(post.id, "star")}
-                              className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
-                                post.reactions.star.active 
-                                  ? "bg-amber-100 text-amber-700 border border-amber-300" 
-                                  : "bg-slate-50 text-slate-500 border border-slate-200/60"
-                              }`}
-                            >
-                              <span>⭐️</span>
-                              <span>{post.reactions.star.count}</span>
-                            </button>
-                            <button 
-                              onClick={() => handleToggleReaction(post.id, "heart")}
-                              className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
-                                post.reactions.heart.active 
-                                  ? "bg-red-100 text-red-700 border border-red-300" 
-                                  : "bg-slate-50 text-slate-500 border border-slate-200/60"
-                              }`}
-                            >
-                              <span>❤️</span>
-                              <span>{post.reactions.heart.count}</span>
-                            </button>
-                            <button 
-                              onClick={() => handleToggleReaction(post.id, "fire")}
-                              className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
-                                post.reactions.fire.active 
-                                  ? "bg-orange-100 text-orange-700 border border-orange-300" 
-                                  : "bg-slate-50 text-slate-500 border border-slate-200/60"
-                              }`}
-                            >
-                              <span>🔥</span>
-                              <span>{post.reactions.fire.count}</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Comments Strip (goes to comments view!) */}
-                        <div 
-                          onClick={() => setView("comments")}
-                          className="border-t border-slate-100 px-3.5 py-2.5 flex items-center justify-between hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2 text-tg font-semibold">
-                            <MessageCircle className="w-4 h-4 text-tg" />
-                            <span className="text-[10px] text-tg">Прокомментировать</span>
-                          </div>
-                          <ChevronLeft className="w-3.5 h-3.5 text-tg rotate-180" />
-                        </div>
-                      </div>
-
-                      {/* Floating Share Button */}
-                      <button className="w-8 h-8 rounded-full bg-[#75B079] hover:bg-[#649c68] text-white flex items-center justify-center shrink-0 cursor-pointer shadow-sm select-none">
-                        <CornerUpRight className="w-3.5 h-3.5 translate-x-[1px]" />
-                      </button>
-                    </div>
-                  ))}
-
-                  {/* Subscribed Label Info */}
-                  <div className="text-center my-1 select-none">
-                    <span className="bg-slate-900/30 text-white text-[8px] font-medium px-3.5 py-1 rounded-full">
-                      Вы подписались на этот канал
-                    </span>
+                  {/* Feed post representing Pinned content */}
+                  <div id="post-drop" className="bg-white rounded-2xl rounded-tr-none border border-slate-200/60 p-3 shadow-xs text-left max-w-[85%] self-start transition-all">
+                    <p className="text-[9.5px] text-slate-500 font-bold mb-1">📌 Таблица размеров и инфо</p>
+                    <p className="text-[9px] text-slate-600 leading-normal">
+                      Чтобы заказать худи или кроссовки, пользуйтесь нашей размерной сеткой. Вся информация находится в каталоге Mini App!
+                    </p>
                   </div>
 
-                  {/* Closeable Sponsored Advertisement Card (Matching screenshot) */}
-                  {adVisible && (
-                    <div className="bg-sky-50/70 border border-sky-100 rounded-xl p-3 shadow-3xs relative text-left select-none mb-1 animate-fade-up">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[8px] font-bold text-[#24A1DE] uppercase tracking-wider">Реклама</span>
-                        <button onClick={() => setAdVisible(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5">
-                          <X className="w-3.5 h-3.5" />
-                        </button>
+                  {/* Channel Post Card (Matching Screenshot 2 layout) */}
+                  <div className="flex items-end gap-1.5 max-w-full">
+                    <div className="bg-white rounded-2xl rounded-tr-none border border-slate-200/80 shadow-xs flex-grow overflow-hidden text-left">
+                      <div className="p-3">
+                        <p className="text-[9px] text-slate-600 leading-normal mb-2.5">
+                          Свежая коллекция Urban Wear 2026 уже доступна к заказу. Новые ткани, премиальные швы и нативное удобство покупки прямо в мессенджере...
+                        </p>
+
+                        {/* TG Quote Block */}
+                        <div className="border-l-[3px] border-[#24a1de] bg-[#f0f9ff] p-2.5 rounded-r-lg mb-3 relative">
+                          <span className="absolute top-1 right-2 text-[#24a1de] text-lg font-serif select-none leading-none">”</span>
+                          <p className="text-[9px] text-slate-800 font-semibold leading-normal pr-4">
+                            Каждая вещь создана вручную в лимитированном тираже. Повторов дропа не будет, заказывайте прямо сейчас через наш каталог.
+                          </p>
+                          <ChevronDown className="w-3.5 h-3.5 text-[#24a1de] absolute bottom-1 right-2" />
+                        </div>
+
+                        {/* Bullet points */}
+                        <div className="space-y-2 text-[9px] text-slate-600 leading-normal">
+                          <p>
+                            <span className="text-red-500 font-extrabold mr-1">4</span> 
+                            Премиальный хлопок плотностью 420г/м² в худи.
+                          </p>
+                          <p>
+                            <span className="text-red-500 font-extrabold mr-1">5</span> 
+                            Подошва с амортизацией и износостойкая кожа в кроссовках.
+                          </p>
+                          <p>
+                            <span className="text-red-500 font-extrabold mr-1">6</span> 
+                            Регулируемый размер и качественная вышивка на кепках.
+                          </p>
+                        </div>
+
+                        {/* Promotion Link */}
+                        <p className="text-[9.5px] text-slate-800 font-semibold mt-3.5 leading-normal">
+                          Лови гайд 👉 <span onClick={handleOpenCatalog} className="text-tg font-bold underline hover:text-tg-dark cursor-pointer inline-flex items-center gap-0.5">Открыть каталог 🛍</span>
+                        </p>
+
+                        {/* Bottom Info & Views */}
+                        <div className="flex items-center justify-between text-[8px] text-slate-400 font-medium select-none mt-3.5 border-t border-slate-100/50 pt-2">
+                          <span className="flex items-center gap-1">
+                            <span>27.8K views</span>
+                            <span>·</span>
+                            <span>Urban Store</span>
+                          </span>
+                          <span>19:48</span>
+                        </div>
+
+                        {/* Reactions Block (Matching screenshot 2) */}
+                        <div className="flex items-center gap-1.5 mt-2.5 select-none">
+                          <button 
+                            onClick={() => setStarActive(!starActive)}
+                            className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
+                              starActive 
+                                ? "bg-amber-100 text-amber-700 border border-amber-300" 
+                                : "bg-slate-50 text-slate-500 border border-slate-200/60"
+                            }`}
+                          >
+                            <span>⭐️</span>
+                          </button>
+                          <button 
+                            onClick={handleHeartClick}
+                            className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
+                              heartActive 
+                                ? "bg-red-155 text-red-600 border border-red-300" 
+                                : "bg-slate-50 text-slate-500 border border-slate-200/60"
+                            }`}
+                          >
+                            <span>❤️</span>
+                            <span>{heartCount}</span>
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-[9.5px] font-bold text-slate-800 mb-0.5">🔥 Увеличьте ваши продажи на 300%</p>
-                      <p className="text-[8px] text-slate-500 leading-normal mb-2.5">
-                        Закажите разработку Telegram Mini App каталога сегодня и получите скидку 15% на первый месяц поддержки.
-                      </p>
-                      <button onClick={handleOpenCatalog} className="w-full bg-[#24A1DE] hover:bg-[#1a85b9] text-white py-1.5 rounded-lg text-[9px] font-bold text-center transition-colors cursor-pointer uppercase">
-                        Открыть каталог
+
+                      {/* Comments Strip (goes to comments view!) */}
+                      <div 
+                        onClick={() => setView("comments")}
+                        className="border-t border-slate-100 px-3.5 py-2.5 flex items-center justify-between hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2 text-tg font-semibold">
+                          <MessageCircle className="w-4 h-4 text-tg" />
+                          <span className="text-[10px] text-tg">Прокомментировать</span>
+                        </div>
+                        <ChevronLeft className="w-3.5 h-3.5 text-tg rotate-180" />
+                      </div>
+                    </div>
+
+                    {/* Floating Share Button */}
+                    <button className="w-8 h-8 rounded-full bg-[#75B079] hover:bg-[#649c68] text-white flex items-center justify-center shrink-0 cursor-pointer shadow-sm select-none">
+                      <CornerUpRight className="w-3.5 h-3.5 translate-x-[1px]" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Subscribed Label Info */}
+                <div className="text-center my-1 select-none shrink-0">
+                  <span className="bg-slate-900/30 text-white text-[8px] font-medium px-3.5 py-1 rounded-full">
+                    Вы подписались на этот канал
+                  </span>
+                </div>
+
+                {/* Closeable Sponsored Advertisement Card (Matching screenshot) */}
+                {adVisible && (
+                  <div className="bg-[#f0f7ff] border border-sky-100 rounded-xl p-3 mx-3 mb-1 shadow-3xs relative text-left select-none shrink-0 animate-fade-up">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[8px] font-bold text-[#24A1DE] uppercase tracking-wider">Реклама</span>
+                      <button onClick={() => setAdVisible(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5">
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  )}
-                </div>
+                    <p className="text-[9.5px] font-bold text-slate-800 mb-1 leading-tight flex items-center gap-1">
+                      🔥 Двойной бонус на шоппинг
+                    </p>
+                    <p className="text-[9px] text-slate-600 leading-normal mb-2.5">
+                      <span className="bg-emerald-500 text-white px-1.5 py-0.5 rounded-sm font-bold font-mono text-[8px] mr-1">15% СКИДКА</span> 
+                      на второй товар при заказе сегодня.
+                    </p>
+                    <button onClick={handleOpenCatalog} className="w-full bg-[#24A1DE] hover:bg-[#1a85b9] text-white py-2 rounded-lg text-[9px] font-bold text-center transition-colors cursor-pointer uppercase tracking-wider">
+                      Открыть каталог
+                    </button>
+                  </div>
+                )}
 
                 {/* Channel Bottom Mute Bar */}
                 <div 
@@ -520,7 +488,7 @@ export default function Simulator() {
                     <ChevronLeft onClick={() => setView("channel")} className="w-5 h-5 text-tg cursor-pointer" />
                     <div className="text-left">
                       <p className="font-semibold text-xs leading-tight text-slate-900">Комментарии</p>
-                      <p className="text-[9px] text-slate-400 leading-tight">15 обсуждений</p>
+                      <p className="text-[9px] text-slate-400 leading-tight font-mono">15 обсуждений</p>
                     </div>
                   </div>
                   <MoreVertical className="w-4 h-4 text-slate-500" />
@@ -532,7 +500,7 @@ export default function Simulator() {
                   {/* Pinned post snippet on top of comments */}
                   <div className="bg-slate-50/90 border border-slate-200/60 rounded-xl p-2.5 text-left mb-2 text-[9px] text-slate-500 select-none">
                     <span className="font-bold text-slate-700 block mb-0.5">Ветка комментариев к посту</span>
-                    «Почему Mini App? Покупка в 3 клика без перехода в браузер...»
+                    «Свежая коллекция Urban Wear 2026 уже доступна к заказу...»
                   </div>
 
                   {/* Comment 1: Daniil */}
@@ -646,7 +614,7 @@ export default function Simulator() {
 
                 {/* Bottom simulated input area */}
                 <div className="px-3 py-3 border-t border-slate-100 bg-white flex items-center gap-2 shrink-0">
-                  <div className="flex-1 bg-slate-50 rounded-full px-4 py-2.5 text-[9px] text-slate-400 select-none font-sans">
+                  <div className="flex-grow bg-slate-50 rounded-full px-4 py-2.5 text-[9px] text-slate-400 select-none">
                     Сообщение отправлено автоматически
                   </div>
                   <div className="w-8 h-8 rounded-full bg-[#24A1DE] flex items-center justify-center shrink-0">
@@ -655,7 +623,7 @@ export default function Simulator() {
                 </div>
               </div>
 
-              {/* ===== LIGHT-THEMED TELEGRAM WEB APP SHEET OVERLAY (MATCHING SCREENSHOT) ===== */}
+              {/* ===== LIGHT-THEMED TELEGRAM WEB APP SHEET OVERLAY (MATCHING SCREENSHOT 1) ===== */}
               <div 
                 className={`absolute inset-x-0 bottom-0 top-[0px] bg-slate-50 shadow-2xl z-45 flex flex-col overflow-hidden transition-transform duration-500 ease-out-quint ${
                   webAppOpen ? "translate-y-0" : "translate-y-full"
@@ -686,29 +654,28 @@ export default function Simulator() {
                   
                   {/* Brand Row */}
                   <div className="flex items-center justify-between select-none">
-                    <span className="font-display font-extrabold text-[11px] text-slate-800 tracking-wider">URBAN STORE</span>
+                    <span className="font-display font-extrabold text-[11px] text-slate-800 tracking-wider">URBAN WEAR</span>
                     
                     {/* Cart pill indicator */}
                     <div className="bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-full px-3 py-1 text-[10px] font-mono font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs">
-                      <ShoppingBag className="w-3.5 h-3.5 text-slate-500" />
                       <span>{cartTotal.toLocaleString("ru-RU")} ₽</span>
                     </div>
                   </div>
 
-                  {/* Large Hero Drop Banner Card */}
+                  {/* Large Hero Drop Banner Card (Matching Screenshot 1) */}
                   <div className="grad-tg rounded-2xl p-4 text-white text-left relative overflow-hidden select-none shadow-sm">
                     <div className="absolute right-[-10px] bottom-[-15px] opacity-15">
                       <ShoppingBag className="w-24 h-24 text-white" />
                     </div>
-                    <p className="bg-white/20 text-white font-mono text-[8px] font-bold px-1.5 py-0.5 rounded-sm inline-block mb-2">ДРОП 2026</p>
-                    <h4 className="font-display font-extrabold text-sm leading-tight mb-1 uppercase tracking-tight">Летний каталог одежды</h4>
+                    <p className="bg-white/20 text-white font-mono text-[8px] font-bold px-1.5 py-0.5 rounded-sm inline-block mb-2">ЛЕТНИЙ ДРОП 2026</p>
+                    <h4 className="font-display font-extrabold text-sm leading-tight mb-1 uppercase tracking-tight">Новая коллекция одежды</h4>
                     <p className="text-[9px] text-white/80 leading-normal max-w-[70%]">
-                      Свежие релизы худи, кроссовки и кепок в Telegram. Добавляйте в корзину и оформляйте заказ!
+                      Лимитированные худи, кепки и кроссовки. Заказывайте в один клик с доставкой!
                     </p>
                   </div>
 
-                  {/* Grid of Product Cards (Matching layout from screenshot) */}
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* Horizontal Scroll Product list (Matching Screenshot 1 layout) */}
+                  <div className="flex gap-3 overflow-x-auto pb-3 phone-scrollbar select-none">
                     {PRODUCTS.map((product) => {
                       const addedItem = cart.find(item => item.id === product.id);
                       const isAdded = !!addedItem;
@@ -716,13 +683,15 @@ export default function Simulator() {
                       return (
                         <div 
                           key={product.id}
-                          className="bg-white border border-slate-200/80 rounded-2xl p-3 flex flex-col items-center text-center shadow-2xs hover:border-tg/50 transition-colors"
+                          className="bg-white border border-slate-200/80 rounded-2xl p-3 flex flex-col items-center text-center shadow-2xs hover:border-tg/50 transition-colors w-[135px] shrink-0"
                         >
                           <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2.5 ${product.gradClass}`}>
                             <IconComponent className="w-6 h-6 text-white" />
                           </div>
                           
-                          <p className="text-[10px] font-bold text-slate-800 truncate w-full mb-0.5">{product.name}</p>
+                          <p className="text-[10px] font-bold text-slate-800 leading-tight w-full mb-1 h-7 overflow-hidden text-ellipsis flex items-center justify-center">
+                            {product.name}
+                          </p>
                           <p className="text-[9px] text-slate-400 font-mono mb-2.5">{product.price.toLocaleString("ru-RU")} ₽</p>
                           
                           <button
@@ -734,7 +703,7 @@ export default function Simulator() {
                                 : "bg-tg text-white hover:bg-tg-dark"
                             }`}
                           >
-                            {isAdded ? `Добавлено` : "Выбрать"}
+                            {isAdded ? `Выбрано` : "Открыть"}
                           </button>
                         </div>
                       );
@@ -761,25 +730,25 @@ export default function Simulator() {
                   </button>
                 </div>
 
-                {/* Simulated Bottom Navigation Tab Bar (matching screenshot layout) */}
+                {/* Simulated Bottom Navigation Tab Bar (matching screenshot 1 layout) */}
                 <div className="h-12 border-t border-slate-100 bg-white px-8 flex items-center justify-between shrink-0 select-none">
                   <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 cursor-pointer">
                     <LifeBuoy className="w-4 h-4" />
-                    <span className="text-[8px] font-medium leading-none mt-0.5">ПОМОЩЬ</span>
+                    <span className="text-[8px] font-semibold leading-none mt-0.5">ПОМОЩЬ</span>
                   </button>
                   <button className="flex flex-col items-center gap-1 text-tg cursor-default">
-                    <ShoppingBag className="w-4 h-4" />
+                    <Home className="w-4 h-4" />
                     <span className="text-[8px] font-bold leading-none mt-0.5">ГЛАВНАЯ</span>
                   </button>
                   <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 cursor-pointer">
-                    <Sparkles className="w-4 h-4" />
+                    <Grid className="w-4 h-4" />
                     <span className="text-[8px] font-medium leading-none mt-0.5">ЕЩЕ</span>
                   </button>
                 </div>
 
                 {/* Nested size selection drawer */}
                 <div 
-                  className={`absolute inset-0 bg-black/45 z-50 transition-opacity duration-300 flex flex-col justify-end ${
+                  className={`absolute inset-0 bg-black/45 z-55 transition-opacity duration-300 flex flex-col justify-end ${
                     sizeSelectorProduct ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                   }`}
                 >
@@ -829,6 +798,13 @@ export default function Simulator() {
 
               </div>
 
+            </div>
+
+            {/* Simulated Android Navigation Bar */}
+            <div className="h-6 bg-[#0c101b] border-t border-slate-800/20 px-10 flex items-center justify-between text-slate-500 text-[9px] select-none shrink-0">
+              <span className="cursor-default">|||</span>
+              <span className="w-2.5 h-2.5 rounded-full border border-slate-500 cursor-default"></span>
+              <span className="cursor-default font-serif">&lt;</span>
             </div>
 
             {/* Telegram Toast Message inside Phone Screen */}
