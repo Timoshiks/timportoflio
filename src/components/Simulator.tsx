@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { 
   ShoppingBag, Plus, Check, ArrowRight, ChevronLeft, 
   User, RotateCcw, Shirt, Footprints, Crown, 
-  Search, MoreVertical, X, Sparkles, Send
+  Search, MoreVertical, X, Sparkles, CornerUpRight
 } from "lucide-react";
 
 interface Product {
@@ -49,6 +49,25 @@ export default function Simulator() {
   const [cart, setCart] = useState<{ id: number; name: string; price: number; size: string }[]>([]);
   const [sizeSelectorProduct, setSizeSelectorProduct] = useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>("");
+  
+  const [reactions, setReactions] = useState({
+    star: { count: 58, active: false },
+    heart: { count: 407, active: false },
+    fire: { count: 24, active: false }
+  });
+
+  const handleToggleReaction = (type: "star" | "heart" | "fire") => {
+    setReactions(prev => {
+      const target = prev[type];
+      return {
+        ...prev,
+        [type]: {
+          count: target.active ? target.count - 1 : target.count + 1,
+          active: !target.active
+        }
+      };
+    });
+  };
   
   const [chatStatus, setChatStatus] = useState<"в сети" | "печатает…">("в сети");
   const [showTyping, setShowTyping] = useState(false);
@@ -219,32 +238,111 @@ export default function Simulator() {
                   </div>
                 </div>
 
-                {/* Feed Feed */}
-                <div className="flex-1 bg-slate-100 p-3 overflow-y-auto space-y-4">
-                  
-                  {/* Channel Post Card */}
-                  <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-sm">
-                    {/* CSS gradient media placeholder */}
-                    <div className="bg-gradient-to-br from-tg/10 via-ig-violet/5 to-ig-pink/10 h-28 rounded-lg flex flex-col items-center justify-center font-display text-[10px] text-slate-400 font-bold mb-3 border border-slate-100 select-none">
-                      <Sparkles className="w-5 h-5 text-ig-violet mb-1" />
-                      NEW ARRIVALS 2026
+                {/* Pinned Message Bar */}
+                <div className="bg-white px-3.5 py-1.5 border-b border-slate-200/80 flex items-center justify-between shrink-0 select-none cursor-pointer">
+                  <div className="flex items-center gap-2 border-l-2 border-tg pl-2 min-w-0">
+                    <div className="flex flex-col text-left">
+                      <span className="text-[9px] text-tg font-bold leading-tight">Закрепленное сообщение</span>
+                      <span className="text-[8px] text-slate-500 truncate max-w-[200px] leading-tight font-medium">
+                        🔥 Дроп Urban Wear 2026: Выбирайте размеры товаров...
+                      </span>
                     </div>
-                    
-                    <h3 className="font-bold text-xs text-slate-800 mb-1.5">🔥 Свежий дроп Urban Wear!</h3>
-                    <p className="text-[10px] text-slate-600 leading-normal">
-                      Новые худи, кроссовки и кепки уже доступны к заказу. Оформляйте покупки прямо внутри Telegram без лишних вкладок и долгой загрузки сайтов.
-                    </p>
-                    
-                    {/* Inline Button (Telegram Web App trigger) */}
-                    <button 
-                      onClick={handleOpenCatalog}
-                      className="w-full mt-3 bg-[#24A1DE] hover:bg-[#1a85b9] text-white py-2.5 px-3 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      <ShoppingBag className="w-3.5 h-3.5" />
-                      🛍 Открыть каталог
-                    </button>
+                  </div>
+                  <X className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 shrink-0" />
+                </div>
+
+                {/* Feed Feed */}
+                <div className="flex-1 bg-tg-wallpaper p-3 overflow-y-auto space-y-4 phone-scrollbar">
+                  {/* Day Separator */}
+                  <div className="text-center my-2">
+                    <span className="bg-slate-900/10 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-full select-none">
+                      Thursday
+                    </span>
                   </div>
 
+                  {/* Channel Post Card Layout */}
+                  <div className="flex items-end gap-1.5 max-w-full">
+                    <div className="bg-white rounded-2xl rounded-tr-none border border-slate-200/80 shadow-xs flex-grow overflow-hidden text-left">
+                      <div className="p-3">
+                        <h4 className="font-bold text-[11px] text-slate-800 mb-1">Почему Mini App?</h4>
+                        <p className="text-[10px] text-slate-600 leading-normal mb-2">
+                          Покупка в 3 клика без перехода во внешние браузеры. Каждый лишний переход — это потеря клиента. Внутри Telegram конверсия возрастает в 3 раза!
+                        </p>
+                        <h4 className="font-bold text-[11px] text-slate-800 mb-1">Что делать?</h4>
+                        <p className="text-[10px] text-slate-600 leading-normal mb-2.5">
+                          Запустить каталог, который открывается мгновенно.
+                        </p>
+                        <p className="text-[10px] text-slate-800 font-semibold mb-3 leading-normal">
+                          Лови 👉 <span onClick={handleOpenCatalog} className="text-tg font-bold underline hover:text-tg-dark cursor-pointer inline-flex items-center gap-0.5">Открыть каталог 🛍</span>
+                        </p>
+
+                        {/* Bottom Info & Views */}
+                        <div className="flex items-center justify-between text-[8px] text-slate-400 font-medium select-none mt-4 border-t border-slate-100/50 pt-2">
+                          <span className="flex items-center gap-1">
+                            <span>27.8K views</span>
+                            <span>·</span>
+                            <span>Urban Store</span>
+                          </span>
+                          <span>19:48</span>
+                        </div>
+
+                        {/* Reactions Block */}
+                        <div className="flex items-center gap-1.5 mt-3 select-none">
+                          <button 
+                            onClick={() => handleToggleReaction("star")}
+                            className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
+                              reactions.star.active 
+                                ? "bg-amber-100 text-amber-700 border border-amber-300" 
+                                : "bg-slate-50 text-slate-500 border border-slate-200/60"
+                            }`}
+                          >
+                            <span>⭐️</span>
+                            <span>{reactions.star.count}</span>
+                          </button>
+                          <button 
+                            onClick={() => handleToggleReaction("heart")}
+                            className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
+                              reactions.heart.active 
+                                ? "bg-red-100 text-red-700 border border-red-300" 
+                                : "bg-slate-50 text-slate-500 border border-slate-200/60"
+                            }`}
+                          >
+                            <span>❤️</span>
+                            <span>{reactions.heart.count}</span>
+                          </button>
+                          <button 
+                            onClick={() => handleToggleReaction("fire")}
+                            className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
+                              reactions.fire.active 
+                                ? "bg-orange-100 text-orange-700 border border-orange-300" 
+                                : "bg-slate-50 text-slate-500 border border-slate-200/60"
+                            }`}
+                          >
+                            <span>🔥</span>
+                            <span>{reactions.fire.count}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Comments Strip */}
+                      <div className="border-t border-slate-100 px-3 py-2 flex items-center justify-between bg-slate-50/50 hover:bg-slate-50 transition-colors duration-200 cursor-pointer">
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex -space-x-1.5 select-none">
+                            <div className="w-4.5 h-4.5 rounded-full border border-white bg-indigo-400 flex items-center justify-center text-[7px] font-bold text-white shrink-0">A</div>
+                            <div className="w-4.5 h-4.5 rounded-full border border-white bg-rose-400 flex items-center justify-center text-[7px] font-bold text-white shrink-0">M</div>
+                            <div className="w-4.5 h-4.5 rounded-full border border-white bg-emerald-500 flex items-center justify-center text-[7px] font-bold text-white shrink-0">K</div>
+                          </div>
+                          <span className="text-[10px] text-tg font-bold">15 comments</span>
+                        </div>
+                        <ChevronLeft className="w-3.5 h-3.5 text-tg rotate-180" />
+                      </div>
+                    </div>
+
+                    {/* Floating Share Button */}
+                    <button className="w-8 h-8 rounded-full bg-[#75B079] hover:bg-[#649c68] text-white flex items-center justify-center shrink-0 cursor-pointer shadow-sm select-none">
+                      <CornerUpRight className="w-3.5 h-3.5 translate-x-[1px]" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -265,7 +363,7 @@ export default function Simulator() {
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ig-violet to-ig-pink flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
+                    <User className="w-4.5 h-4.5 text-white" />
                   </div>
                   <div>
                     <p className="text-slate-900 font-semibold text-xs leading-tight">Менеджер Анна</p>
@@ -274,12 +372,12 @@ export default function Simulator() {
                 </div>
 
                 {/* Chat Message Stream */}
-                <div className="flex-1 px-3 py-4 flex flex-col justify-end gap-3 bg-slate-100 overflow-y-auto">
+                <div className="flex-1 px-3 py-4 flex flex-col justify-end gap-3 bg-tg-wallpaper overflow-y-auto phone-scrollbar">
                   
                   {/* Automated Outgoing Order Message */}
-                  <div className="self-end max-w-[85%] bg-[#24A1DE] text-white text-[12px] leading-snug rounded-xl rounded-br-none px-3.5 py-2.5 shadow-sm animate-fade-up">
-                    <p className="font-semibold mb-1 text-[11px]">Здравствуйте! Я хочу заказать:</p>
-                    <div className="text-white/95 text-[11px] space-y-0.5">
+                  <div className="self-end max-w-[85%] bg-[#effdde] text-slate-800 text-[12px] leading-snug rounded-xl rounded-br-none px-3.5 py-2.5 shadow-sm border border-emerald-200/40 animate-fade-up">
+                    <p className="font-semibold mb-1 text-[11px] text-slate-900">Здравствуйте! Я хочу заказать:</p>
+                    <div className="text-slate-700 text-[11px] space-y-0.5">
                       {cart.map((item, idx) => (
                         <div key={idx} className="flex items-center justify-between gap-4">
                           <span>• {item.name} ({item.size})</span>
@@ -287,7 +385,7 @@ export default function Simulator() {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-2 pt-1.5 border-t border-white/20 font-bold text-right text-[11px]">
+                    <div className="mt-2 pt-1.5 border-t border-slate-200/60 font-bold text-right text-[11px] text-slate-900">
                       Итого: {cartTotal.toLocaleString("ru-RU")} руб.
                     </div>
                   </div>
