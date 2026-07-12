@@ -5,7 +5,7 @@ import {
   ShoppingBag, Plus, Check, ArrowRight, ChevronLeft, 
   User, RotateCcw, Shirt, Crown, 
   Search, MoreVertical, X, Sparkles, CornerUpRight,
-  MessageCircle, LifeBuoy, Heart, Smile
+  MessageCircle, LifeBuoy, Heart, Smile, Paperclip, Send
 } from "lucide-react";
 
 interface Product {
@@ -30,7 +30,7 @@ const PRODUCTS: Product[] = [
     id: 2,
     name: "Кроссовки Urban",
     price: 6200,
-    icon: Sparkles, // Using Sparkles as generic footwear/star graphic icon
+    icon: Sparkles,
     gradClass: "grad-tg",
     sizes: ["40", "41", "42", "43", "44"]
   },
@@ -44,6 +44,21 @@ const PRODUCTS: Product[] = [
   }
 ];
 
+interface Post {
+  id: number;
+  title: string;
+  text: string;
+  views: string;
+  time: string;
+  reactions: {
+    star: { count: number; active: boolean };
+    heart: { count: number; active: boolean };
+    fire: { count: number; active: boolean };
+  };
+  hasCatalogLink?: boolean;
+  isPinned?: boolean;
+}
+
 export default function Simulator() {
   const [view, setView] = useState<"channel" | "comments" | "chat">("channel");
   const [webAppOpen, setWebAppOpen] = useState(false);
@@ -51,11 +66,59 @@ export default function Simulator() {
   const [sizeSelectorProduct, setSizeSelectorProduct] = useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>("");
   
-  const [reactions, setReactions] = useState({
-    star: { count: 58, active: false },
-    heart: { count: 407, active: false },
-    fire: { count: 24, active: false }
-  });
+  // Mute & Toast States
+  const [isMuted, setIsMuted] = useState(true);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Ad State
+  const [adVisible, setAdVisible] = useState(true);
+
+  // Search States
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Channel Posts State
+  const [posts, setPosts] = useState<Post[]>([
+    {
+      id: 101,
+      title: "📌 Гайд по выбору размера одежды",
+      text: "Чтобы заказать худи, кроссовки или кепку, используйте нашу размерную сетку:\n\n• Худи: XS (44), S (46), M (48), L (50), XL (52).\n• Кроссовки: 40 (26см), 41 (26.5см), 42 (27см), 43 (28см), 44 (28.5см).\n• Кепка: регулируемый размер.",
+      views: "10.4K",
+      time: "12:05",
+      reactions: {
+        star: { count: 12, active: false },
+        heart: { count: 45, active: false },
+        fire: { count: 8, active: false }
+      },
+      isPinned: true
+    },
+    {
+      id: 102,
+      title: "🔥 Скидка 10% на первый заказ!",
+      text: "Дарим приветственную скидку на ваш первый заказ в нашем мини-приложении! Перейдите в каталог по ссылке ниже, выберите товары, и скидка START10 применится в корзине автоматически.",
+      views: "15.2K",
+      time: "14:20",
+      reactions: {
+        star: { count: 4, active: false },
+        heart: { count: 122, active: false },
+        fire: { count: 89, active: false }
+      }
+    },
+    {
+      id: 103,
+      title: "Почему Mini App?",
+      text: "Покупка в 3 клика без перехода во внешние браузеры. Каждый лишний переход — это потеря клиента. Внутри Telegram конверсия возрастает в 3 раза!\n\nЧто делать?\nЗапустить каталог, который открывается мгновенно.\n\nЛови 👉 Открыть каталог 🛍",
+      views: "27.8K",
+      time: "19:48",
+      reactions: {
+        star: { count: 58, active: false },
+        heart: { count: 407, active: false },
+        fire: { count: 24, active: false }
+      },
+      hasCatalogLink: true
+    }
+  ]);
 
   const [chatStatus, setChatStatus] = useState<"в сети" | "печатает…">("в сети");
   const [showTyping, setShowTyping] = useState(false);
@@ -69,8 +132,22 @@ export default function Simulator() {
     return () => {
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
       if (replyTimerRef.current) clearTimeout(replyTimerRef.current);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
+
+  const showToast = (msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastMessage(msg);
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage(null);
+    }, 1800);
+  };
+
+  const handleMuteToggle = () => {
+    setIsMuted(!isMuted);
+    showToast(isMuted ? "Звук включен" : "Звук выключен");
+  };
 
   const handleOpenCatalog = () => {
     setWebAppOpen(true);
@@ -103,27 +180,31 @@ export default function Simulator() {
     setSelectedSize("");
   };
 
-  const handleToggleReaction = (type: "star" | "heart" | "fire") => {
-    setReactions(prev => {
-      const target = prev[type];
-      return {
-        ...prev,
-        [type]: {
-          count: target.active ? target.count - 1 : target.count + 1,
-          active: !target.active
-        }
-      };
-    });
+  const handleToggleReaction = (postId: number, type: "star" | "heart" | "fire") => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => {
+        if (post.id !== postId) return post;
+        const currentReaction = post.reactions[type];
+        return {
+          ...post,
+          reactions: {
+            ...post.reactions,
+            [type]: {
+              count: currentReaction.active ? currentReaction.count - 1 : currentReaction.count + 1,
+              active: !currentReaction.active
+            }
+          }
+        };
+      })
+    );
   };
 
   const handlePinnedClick = () => {
-    if (feedRef.current) {
-      const currentScroll = feedRef.current.scrollTop;
-      if (currentScroll > 20) {
-        feedRef.current.scrollTo({ top: 0, behavior: "smooth" });
-      } else {
-        feedRef.current.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
-      }
+    // Scrolls to the pinned post (ID 101) inside the scroll viewport
+    const pinnedPostEl = document.getElementById("post-101");
+    if (pinnedPostEl) {
+      pinnedPostEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      showToast("Переход к закрепленному сообщению");
     }
   };
 
@@ -176,9 +257,18 @@ export default function Simulator() {
     setShowTyping(false);
     setShowReply(false);
     setChatStatus("в сети");
+    setAdVisible(true);
+    setSearchOpen(false);
+    setSearchQuery("");
     if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
     if (replyTimerRef.current) clearTimeout(replyTimerRef.current);
   };
+
+  // Filter posts based on search query
+  const filteredPosts = posts.filter(post => 
+    post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    post.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <section id="simulator" className="relative py-24 px-6 max-w-7xl mx-auto border-t border-slate-200/80">
@@ -238,14 +328,30 @@ export default function Simulator() {
                         Urban Store 
                         <span className="w-2.5 h-2.5 bg-tg rounded-full inline-flex items-center justify-center"><Check className="w-1.5 h-1.5 text-white" /></span>
                       </p>
-                      <p className="text-[10px] text-slate-400 leading-tight">14 200 подписчиков</p>
+                      <p className="text-[10px] text-slate-400 leading-tight font-mono">14.2K подписчиков</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-slate-500">
-                    <Search className="w-4 h-4" />
+                    <Search onClick={() => setSearchOpen(!searchOpen)} className="w-4 h-4 cursor-pointer hover:text-tg" />
                     <MoreVertical className="w-4 h-4" />
                   </div>
                 </div>
+
+                {/* Optional Search Bar input */}
+                {searchOpen && (
+                  <div className="bg-slate-50 px-3 py-1.5 border-b border-slate-200/60 shrink-0 flex items-center gap-2 animate-fade-up">
+                    <input 
+                      type="text" 
+                      placeholder="Поиск по каналу..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-[10px] text-slate-800 focus:outline-none focus:border-tg placeholder:text-slate-400"
+                    />
+                    <button onClick={() => { setSearchQuery(""); setSearchOpen(false); }} className="text-slate-400 hover:text-slate-600">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
 
                 {/* Pinned Message Bar */}
                 <div 
@@ -256,7 +362,7 @@ export default function Simulator() {
                     <div className="flex flex-col text-left">
                       <span className="text-[9px] text-tg font-bold leading-tight">Закрепленное сообщение</span>
                       <span className="text-[8px] text-slate-500 truncate max-w-[190px] leading-tight font-medium">
-                        🔥 Дроп Urban Wear 2026: Выбирайте размеры товаров...
+                        📌 Гайд по выбору размера одежды
                       </span>
                     </div>
                   </div>
@@ -266,7 +372,7 @@ export default function Simulator() {
                 {/* Feed (aligned to bottom, no empty bottom spacing!) */}
                 <div 
                   ref={feedRef}
-                  className="flex-1 bg-tg-wallpaper p-3 overflow-y-auto phone-scrollbar flex flex-col justify-end space-y-3"
+                  className="flex-1 bg-tg-wallpaper p-3 overflow-y-auto phone-scrollbar flex flex-col justify-start space-y-4"
                 >
                   {/* Day Separator */}
                   <div className="text-center my-1.5">
@@ -275,129 +381,132 @@ export default function Simulator() {
                     </span>
                   </div>
 
-                  {/* Older post representing Pinned content */}
-                  <div className="bg-white rounded-2xl rounded-tr-none border border-slate-200/60 p-3 shadow-xs text-left max-w-[85%] self-start opacity-70">
-                    <p className="text-[9px] text-slate-500 font-semibold mb-1">📌 Закрепленный гайд</p>
-                    <p className="text-[9px] text-slate-600 leading-normal">
-                      Таблица размеров и инструкция по оформлению заказов через Mini App находится в этой ветке. Жмите на кнопку ниже.
-                    </p>
-                  </div>
+                  {/* Render Posts List */}
+                  {filteredPosts.map((post) => (
+                    <div 
+                      key={post.id}
+                      id={`post-${post.id}`}
+                      className="flex items-end gap-1.5 max-w-full"
+                    >
+                      <div className="bg-white rounded-2xl rounded-tr-none border border-slate-200/80 shadow-xs flex-grow overflow-hidden text-left">
+                        <div className="p-3">
+                          <h4 className="font-bold text-[10px] text-slate-800 mb-1">{post.title}</h4>
+                          <p className="text-[9.5px] text-slate-600 leading-normal whitespace-pre-wrap">
+                            {post.text.split("Открыть каталог 🛍")[0]}
+                            {post.hasCatalogLink && (
+                              <span onClick={handleOpenCatalog} className="text-tg font-bold underline hover:text-tg-dark cursor-pointer inline-flex items-center gap-0.5">Открыть каталог 🛍</span>
+                            )}
+                          </p>
 
-                  {/* Channel Post Card Layout */}
-                  <div className="flex items-end gap-1.5 max-w-full">
-                    <div className="bg-white rounded-2xl rounded-tr-none border border-slate-200/80 shadow-xs flex-grow overflow-hidden text-left">
-                      <div className="p-3">
-                        <h4 className="font-bold text-[10px] text-slate-800 mb-1">Почему Mini App?</h4>
-                        <p className="text-[9px] text-slate-600 leading-normal mb-2">
-                          Покупка в 3 клика без перехода во внешние браузеры. Каждый лишний переход — это потеря клиента. Внутри Telegram конверсия возрастает в 3 раза!
-                        </p>
-                        <h4 className="font-bold text-[10px] text-slate-800 mb-1">Что делать?</h4>
-                        <p className="text-[9px] text-slate-600 leading-normal mb-2.5">
-                          Запустить каталог, который открывается мгновенно.
-                        </p>
-                        <p className="text-[9.5px] text-slate-800 font-semibold mb-2.5 leading-normal">
-                          Лови 👉 <span onClick={handleOpenCatalog} className="text-tg font-bold underline hover:text-tg-dark cursor-pointer inline-flex items-center gap-0.5">Открыть каталог 🛍</span>
-                        </p>
+                          {/* Bottom Info & Views */}
+                          <div className="flex items-center justify-between text-[8px] text-slate-400 font-medium select-none mt-3.5 border-t border-slate-100/50 pt-2">
+                            <span className="flex items-center gap-1">
+                              <span>{post.views} views</span>
+                              <span>·</span>
+                              <span>Urban Store</span>
+                            </span>
+                            <span>{post.time}</span>
+                          </div>
 
-                        {/* Bottom Info & Views */}
-                        <div className="flex items-center justify-between text-[8px] text-slate-400 font-medium select-none mt-3.5 border-t border-slate-100/50 pt-2">
-                          <span className="flex items-center gap-1">
-                            <span>27.8K views</span>
-                            <span>·</span>
-                            <span>Urban Store</span>
-                          </span>
-                          <span>19:48</span>
+                          {/* Reactions Block */}
+                          <div className="flex items-center gap-1.5 mt-2.5 select-none">
+                            <button 
+                              onClick={() => handleToggleReaction(post.id, "star")}
+                              className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
+                                post.reactions.star.active 
+                                  ? "bg-amber-100 text-amber-700 border border-amber-300" 
+                                  : "bg-slate-50 text-slate-500 border border-slate-200/60"
+                              }`}
+                            >
+                              <span>⭐️</span>
+                              <span>{post.reactions.star.count}</span>
+                            </button>
+                            <button 
+                              onClick={() => handleToggleReaction(post.id, "heart")}
+                              className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
+                                post.reactions.heart.active 
+                                  ? "bg-red-100 text-red-700 border border-red-300" 
+                                  : "bg-slate-50 text-slate-500 border border-slate-200/60"
+                              }`}
+                            >
+                              <span>❤️</span>
+                              <span>{post.reactions.heart.count}</span>
+                            </button>
+                            <button 
+                              onClick={() => handleToggleReaction(post.id, "fire")}
+                              className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
+                                post.reactions.fire.active 
+                                  ? "bg-orange-100 text-orange-700 border border-orange-300" 
+                                  : "bg-slate-50 text-slate-500 border border-slate-200/60"
+                              }`}
+                            >
+                              <span>🔥</span>
+                              <span>{post.reactions.fire.count}</span>
+                            </button>
+                          </div>
                         </div>
 
-                        {/* Reactions Block */}
-                        <div className="flex items-center gap-1.5 mt-2.5 select-none">
-                          <button 
-                            onClick={() => handleToggleReaction("star")}
-                            className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
-                              reactions.star.active 
-                                ? "bg-amber-100 text-amber-700 border border-amber-300" 
-                                : "bg-slate-50 text-slate-500 border border-slate-200/60"
-                            }`}
-                          >
-                            <span>⭐️</span>
-                            <span>{reactions.star.count}</span>
-                          </button>
-                          <button 
-                            onClick={() => handleToggleReaction("heart")}
-                            className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
-                              reactions.heart.active 
-                                ? "bg-red-100 text-red-700 border border-red-300" 
-                                : "bg-slate-50 text-slate-500 border border-slate-200/60"
-                            }`}
-                          >
-                            <span>❤️</span>
-                            <span>{reactions.heart.count}</span>
-                          </button>
-                          <button 
-                            onClick={() => handleToggleReaction("fire")}
-                            className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
-                              reactions.fire.active 
-                                ? "bg-orange-100 text-orange-700 border border-orange-300" 
-                                : "bg-slate-50 text-slate-500 border border-slate-200/60"
-                            }`}
-                          >
-                            <span>🔥</span>
-                            <span>{reactions.fire.count}</span>
-                          </button>
+                        {/* Comments Strip (goes to comments view!) */}
+                        <div 
+                          onClick={() => setView("comments")}
+                          className="border-t border-slate-100 px-3.5 py-2.5 flex items-center justify-between hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2 text-tg font-semibold">
+                            <MessageCircle className="w-4 h-4 text-tg" />
+                            <span className="text-[10px] text-tg">Прокомментировать</span>
+                          </div>
+                          <ChevronLeft className="w-3.5 h-3.5 text-tg rotate-180" />
                         </div>
                       </div>
 
-                      {/* Comments Strip (goes to comments view!) */}
-                      <div 
-                        onClick={() => setView("comments")}
-                        className="border-t border-slate-100 px-3.5 py-2.5 flex items-center justify-between hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2 text-tg font-semibold">
-                          <MessageCircle className="w-4 h-4 text-tg" />
-                          <span className="text-[10px] text-tg">Прокомментировать</span>
-                        </div>
-                        <ChevronLeft className="w-3.5 h-3.5 text-tg rotate-180" />
-                      </div>
+                      {/* Floating Share Button */}
+                      <button className="w-8 h-8 rounded-full bg-[#75B079] hover:bg-[#649c68] text-white flex items-center justify-center shrink-0 cursor-pointer shadow-sm select-none">
+                        <CornerUpRight className="w-3.5 h-3.5 translate-x-[1px]" />
+                      </button>
                     </div>
-
-                    {/* Floating Share Button */}
-                    <button className="w-8 h-8 rounded-full bg-[#75B079] hover:bg-[#649c68] text-white flex items-center justify-center shrink-0 cursor-pointer shadow-sm select-none">
-                      <CornerUpRight className="w-3.5 h-3.5 translate-x-[1px]" />
-                    </button>
-                  </div>
+                  ))}
 
                   {/* Subscribed Label Info */}
                   <div className="text-center my-1 select-none">
-                    <span className="bg-slate-900/30 text-white text-[8px] font-medium px-3.5 py-0.5 rounded-full">
+                    <span className="bg-slate-900/30 text-white text-[8px] font-medium px-3.5 py-1 rounded-full">
                       Вы подписались на этот канал
                     </span>
                   </div>
 
-                  {/* Sponsored Advertisement Card */}
-                  <div className="bg-sky-50/70 border border-sky-100 rounded-xl p-3 shadow-3xs relative text-left select-none mb-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[8px] font-bold text-[#24A1DE] uppercase tracking-wider">Реклама</span>
-                      <button className="text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
+                  {/* Closeable Sponsored Advertisement Card (Matching screenshot) */}
+                  {adVisible && (
+                    <div className="bg-sky-50/70 border border-sky-100 rounded-xl p-3 shadow-3xs relative text-left select-none mb-1 animate-fade-up">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[8px] font-bold text-[#24A1DE] uppercase tracking-wider">Реклама</span>
+                        <button onClick={() => setAdVisible(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <p className="text-[9.5px] font-bold text-slate-800 mb-0.5">🔥 Увеличьте ваши продажи на 300%</p>
+                      <p className="text-[8px] text-slate-500 leading-normal mb-2.5">
+                        Закажите разработку Telegram Mini App каталога сегодня и получите скидку 15% на первый месяц поддержки.
+                      </p>
+                      <button onClick={handleOpenCatalog} className="w-full bg-[#24A1DE] hover:bg-[#1a85b9] text-white py-1.5 rounded-lg text-[9px] font-bold text-center transition-colors cursor-pointer uppercase">
+                        Открыть каталог
+                      </button>
                     </div>
-                    <p className="text-[9px] font-bold text-slate-800 mb-0.5">🔥 Увеличьте ваши продажи на 300%</p>
-                    <p className="text-[8px] text-slate-500 leading-normal mb-2">
-                      Закажите разработку Telegram Mini App каталога сегодня и получите скидку 15% на первый месяц поддержки.
-                    </p>
-                    <button onClick={handleOpenCatalog} className="w-full bg-[#24A1DE] hover:bg-[#1a85b9] text-white py-1.5 rounded-lg text-[9px] font-bold text-center transition-colors cursor-pointer uppercase">
-                      Открыть каталог
-                    </button>
-                  </div>
+                  )}
                 </div>
 
                 {/* Channel Bottom Mute Bar */}
-                <div className="h-11 border-t border-slate-200/80 bg-white px-4 flex items-center justify-between shrink-0 select-none cursor-pointer">
-                  <Search className="w-4 h-4 text-slate-400 hover:text-slate-600" />
-                  <span className="text-xs font-semibold text-tg hover:text-tg-dark">Включить звук</span>
-                  <div className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-slate-600 text-xs">🎁</div>
+                <div 
+                  onClick={handleMuteToggle}
+                  className="h-11 border-t border-slate-200/80 bg-white px-4 flex items-center justify-between shrink-0 select-none cursor-pointer hover:bg-slate-50 transition-colors"
+                >
+                  <Search className="w-4 h-4 text-slate-400" />
+                  <span className="text-xs font-semibold text-tg">
+                    {isMuted ? "Включить звук" : "Выключить звук"}
+                  </span>
+                  <div className="w-5 h-5 flex items-center justify-center text-slate-400 text-xs">🎁</div>
                 </div>
               </div>
 
-              {/* ===== VIEW 1.5: COMMENT CORRESPONDENCE VIEW ===== */}
+              {/* ===== VIEW 1.5: HIGH FIDELITY TELEGRAM COMMENT THREAD ===== */}
               <div 
                 className={`absolute inset-0 flex flex-col transition-all duration-300 ${
                   view === "comments" 
@@ -409,57 +518,67 @@ export default function Simulator() {
                 <div className="bg-white border-b border-slate-100 py-2 px-4 flex items-center justify-between shrink-0 select-none">
                   <div className="flex items-center gap-2.5">
                     <ChevronLeft onClick={() => setView("channel")} className="w-5 h-5 text-tg cursor-pointer" />
-                    <div>
+                    <div className="text-left">
                       <p className="font-semibold text-xs leading-tight text-slate-900">Комментарии</p>
-                      <p className="text-[9px] text-slate-400 leading-tight">Urban Store</p>
+                      <p className="text-[9px] text-slate-400 leading-tight">15 обсуждений</p>
                     </div>
                   </div>
                   <MoreVertical className="w-4 h-4 text-slate-500" />
                 </div>
 
                 {/* Comments Scroll Area */}
-                <div className="flex-1 bg-tg-wallpaper p-3 overflow-y-auto phone-scrollbar flex flex-col justify-end space-y-3">
+                <div className="flex-grow bg-tg-wallpaper p-3 overflow-y-auto phone-scrollbar flex flex-col justify-end space-y-3">
                   
+                  {/* Pinned post snippet on top of comments */}
+                  <div className="bg-slate-50/90 border border-slate-200/60 rounded-xl p-2.5 text-left mb-2 text-[9px] text-slate-500 select-none">
+                    <span className="font-bold text-slate-700 block mb-0.5">Ветка комментариев к посту</span>
+                    «Почему Mini App? Покупка в 3 клика без перехода в браузер...»
+                  </div>
+
                   {/* Comment 1: Daniil */}
                   <div className="flex items-start gap-2 max-w-[85%] self-start">
-                    <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">Д</div>
-                    <div className="bg-white rounded-xl rounded-tl-none border border-slate-200/60 p-2.5 shadow-xs text-left">
-                      <p className="text-[8px] font-bold text-blue-600 mb-0.5">Даниил</p>
+                    <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0 shadow-2xs">Д</div>
+                    <div className="bg-white rounded-2xl rounded-tl-none border border-slate-200/60 p-2.5 shadow-2xs text-left relative">
+                      <p className="text-[8.5px] font-extrabold text-blue-600 mb-0.5 leading-none">Даниил</p>
                       <p className="text-[10px] text-slate-700 leading-snug">Слушайте, а размеры соответствуют европейской таблице?</p>
-                      <p className="text-[7px] text-slate-400 text-right mt-1">17:34</p>
+                      <p className="text-[7px] text-slate-400 text-right mt-1.5 leading-none">17:34</p>
                     </div>
                   </div>
 
                   {/* Comment 2: Manager Anna */}
                   <div className="flex items-start gap-2 max-w-[85%] self-start">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-ig-violet to-ig-pink flex items-center justify-center text-white text-[9px] font-bold shrink-0">А</div>
-                    <div className="bg-white rounded-xl rounded-tl-none border border-slate-200/60 p-2.5 shadow-xs text-left">
-                      <p className="text-[8px] font-bold text-ig-violet mb-0.5 flex items-center gap-1">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-ig-violet to-ig-pink flex items-center justify-center text-white text-[9px] font-bold shrink-0 shadow-2xs">А</div>
+                    <div className="bg-white rounded-2xl rounded-tl-none border border-slate-200/60 p-2.5 shadow-2xs text-left relative">
+                      <p className="text-[8.5px] font-extrabold text-ig-violet mb-0.5 leading-none flex items-center gap-1">
                         Менеджер Анна 
-                        <span className="bg-tg/10 text-tg text-[6px] px-1 rounded-sm">admin</span>
+                        <span className="bg-tg/10 text-tg text-[6px] px-1 rounded-sm font-bold">admin</span>
                       </p>
                       <p className="text-[10px] text-slate-700 leading-snug">Да, Даниил! Размеры стандартные. Полную размерную сетку можно посмотреть в каталоге при выборе размера.</p>
-                      <p className="text-[7px] text-slate-400 text-right mt-1">17:35</p>
+                      <p className="text-[7px] text-slate-400 text-right mt-1.5 leading-none">17:35</p>
                     </div>
                   </div>
 
                   {/* Comment 3: Kirill */}
                   <div className="flex items-start gap-2 max-w-[85%] self-start">
-                    <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">К</div>
-                    <div className="bg-white rounded-xl rounded-tl-none border border-slate-200/60 p-2.5 shadow-xs text-left">
-                      <p className="text-[8px] font-bold text-emerald-600 mb-0.5">Кирилл</p>
+                    <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0 shadow-2xs">К</div>
+                    <div className="bg-white rounded-2xl rounded-tl-none border border-slate-200/60 p-2.5 shadow-2xs text-left relative">
+                      <p className="text-[8.5px] font-extrabold text-emerald-600 mb-0.5 leading-none">Кирилл</p>
                       <p className="text-[10px] text-slate-700 leading-snug">Очень удобно покупать прямо в чате! Нажал, выбрал размер и готово 🙌</p>
-                      <p className="text-[7px] text-slate-400 text-right mt-1">17:36</p>
+                      <p className="text-[7px] text-slate-400 text-right mt-1.5 leading-none">17:36</p>
                     </div>
                   </div>
 
                 </div>
 
-                {/* Comments Input Bar */}
-                <div className="px-3 py-2 border-t border-slate-100 bg-white flex items-center gap-2 shrink-0">
-                  <div className="flex-grow bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5 flex items-center justify-between">
+                {/* Comments Input Bar (Replicating Telegram input bar layout) */}
+                <div className="px-3 py-2 border-t border-slate-100 bg-white flex items-center gap-2 shrink-0 select-none">
+                  <Paperclip className="w-4 h-4 text-slate-400 cursor-pointer hover:text-slate-600" />
+                  <div className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5 flex items-center justify-between">
                     <span className="text-[10px] text-slate-400">Прокомментировать...</span>
-                    <Smile className="w-4 h-4 text-slate-400" />
+                    <Smile className="w-4 h-4 text-slate-400 cursor-pointer hover:text-slate-600" />
+                  </div>
+                  <div className="w-7 h-7 rounded-full bg-tg flex items-center justify-center shrink-0 text-white cursor-pointer hover:bg-tg-dark">
+                    <Send className="w-3 h-3 translate-x-[0.5px]" />
                   </div>
                 </div>
               </div>
@@ -527,7 +646,7 @@ export default function Simulator() {
 
                 {/* Bottom simulated input area */}
                 <div className="px-3 py-3 border-t border-slate-100 bg-white flex items-center gap-2 shrink-0">
-                  <div className="flex-1 bg-slate-50 rounded-full px-4 py-2.5 text-[9px] text-slate-400 select-none">
+                  <div className="flex-1 bg-slate-50 rounded-full px-4 py-2.5 text-[9px] text-slate-400 select-none font-sans">
                     Сообщение отправлено автоматически
                   </div>
                   <div className="w-8 h-8 rounded-full bg-[#24A1DE] flex items-center justify-center shrink-0">
@@ -538,7 +657,7 @@ export default function Simulator() {
 
               {/* ===== LIGHT-THEMED TELEGRAM WEB APP SHEET OVERLAY (MATCHING SCREENSHOT) ===== */}
               <div 
-                className={`absolute inset-x-0 bottom-0 top-[0px] bg-slate-50 shadow-2xl z-40 flex flex-col overflow-hidden transition-transform duration-500 ease-out-quint ${
+                className={`absolute inset-x-0 bottom-0 top-[0px] bg-slate-50 shadow-2xl z-45 flex flex-col overflow-hidden transition-transform duration-500 ease-out-quint ${
                   webAppOpen ? "translate-y-0" : "translate-y-full"
                 }`}
               >
@@ -584,7 +703,7 @@ export default function Simulator() {
                     <p className="bg-white/20 text-white font-mono text-[8px] font-bold px-1.5 py-0.5 rounded-sm inline-block mb-2">ДРОП 2026</p>
                     <h4 className="font-display font-extrabold text-sm leading-tight mb-1 uppercase tracking-tight">Летний каталог одежды</h4>
                     <p className="text-[9px] text-white/80 leading-normal max-w-[70%]">
-                      Свежие релизы худи, кроссовок и кепок в Telegram. Добавляйте в корзину и оформляйте заказ!
+                      Свежие релизы худи, кроссовки и кепок в Telegram. Добавляйте в корзину и оформляйте заказ!
                     </p>
                   </div>
 
@@ -711,6 +830,14 @@ export default function Simulator() {
               </div>
 
             </div>
+
+            {/* Telegram Toast Message inside Phone Screen */}
+            {toastMessage && (
+              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white text-[10px] px-3.5 py-2 rounded-xl z-55 shadow-md animate-fade-up select-none font-medium text-center max-w-[80%] whitespace-nowrap">
+                {toastMessage}
+              </div>
+            )}
+
           </div>
         </div>
 
@@ -729,7 +856,7 @@ export default function Simulator() {
           </div>
 
           <div className="flex gap-4">
-            <div className="w-9 h-9 rounded-full bg-ig-violet/10 flex items-center justify-center shrink-0 font-mono text-xs text-ig-violet font-bold animate-pulse">
+            <div className="w-9 h-9 rounded-full bg-ig-violet/10 flex items-center justify-center shrink-0 font-mono text-xs text-ig-violet font-bold">
               2
             </div>
             <div>
