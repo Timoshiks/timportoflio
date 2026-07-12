@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { 
   ShoppingBag, Plus, Check, ArrowRight, ChevronLeft, 
-  User, RotateCcw, Shirt, Footprints, Crown, 
-  Search, MoreVertical, X, Sparkles, CornerUpRight
+  User, RotateCcw, Shirt, Crown, 
+  Search, MoreVertical, X, Sparkles, CornerUpRight,
+  MessageCircle, LifeBuoy, Heart, Smile
 } from "lucide-react";
 
 interface Product {
@@ -29,7 +30,7 @@ const PRODUCTS: Product[] = [
     id: 2,
     name: "Кроссовки Urban",
     price: 6200,
-    icon: Footprints,
+    icon: Sparkles, // Using Sparkles as generic footwear/star graphic icon
     gradClass: "grad-tg",
     sizes: ["40", "41", "42", "43", "44"]
   },
@@ -44,7 +45,7 @@ const PRODUCTS: Product[] = [
 ];
 
 export default function Simulator() {
-  const [view, setView] = useState<"channel" | "chat">("channel");
+  const [view, setView] = useState<"channel" | "comments" | "chat">("channel");
   const [webAppOpen, setWebAppOpen] = useState(false);
   const [cart, setCart] = useState<{ id: number; name: string; price: number; size: string }[]>([]);
   const [sizeSelectorProduct, setSizeSelectorProduct] = useState<Product | null>(null);
@@ -56,23 +57,11 @@ export default function Simulator() {
     fire: { count: 24, active: false }
   });
 
-  const handleToggleReaction = (type: "star" | "heart" | "fire") => {
-    setReactions(prev => {
-      const target = prev[type];
-      return {
-        ...prev,
-        [type]: {
-          count: target.active ? target.count - 1 : target.count + 1,
-          active: !target.active
-        }
-      };
-    });
-  };
-  
   const [chatStatus, setChatStatus] = useState<"в сети" | "печатает…">("в сети");
   const [showTyping, setShowTyping] = useState(false);
   const [showReply, setShowReply] = useState(false);
-  
+
+  const feedRef = useRef<HTMLDivElement>(null);
   const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const replyTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -114,6 +103,30 @@ export default function Simulator() {
     setSelectedSize("");
   };
 
+  const handleToggleReaction = (type: "star" | "heart" | "fire") => {
+    setReactions(prev => {
+      const target = prev[type];
+      return {
+        ...prev,
+        [type]: {
+          count: target.active ? target.count - 1 : target.count + 1,
+          active: !target.active
+        }
+      };
+    });
+  };
+
+  const handlePinnedClick = () => {
+    if (feedRef.current) {
+      const currentScroll = feedRef.current.scrollTop;
+      if (currentScroll > 20) {
+        feedRef.current.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        feedRef.current.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
+      }
+    }
+  };
+
   const getCartPluralText = (count: number) => {
     const lastDigit = count % 10;
     const lastTwoDigits = count % 100;
@@ -128,10 +141,7 @@ export default function Simulator() {
   const handleCheckout = () => {
     if (cart.length === 0) return;
     
-    // Close WebApp bottom sheet
     setWebAppOpen(false);
-    
-    // Change screen view to Manager Chat
     setView("chat");
     setChatStatus("в сети");
     setShowTyping(false);
@@ -140,7 +150,6 @@ export default function Simulator() {
     if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
     if (replyTimerRef.current) clearTimeout(replyTimerRef.current);
 
-    // Simulated reply trigger
     typingTimerRef.current = setTimeout(() => {
       setChatStatus("печатает…");
       setShowTyping(true);
@@ -179,7 +188,7 @@ export default function Simulator() {
           Попробуйте сами — как клиент
         </h2>
         <p className="text-text-secondary leading-relaxed">
-          Нажмите на кнопку открытия каталога в посте канала, выберите размеры товаров, добавьте их в корзину и оформите заказ. Посмотрите, как бесшовно Mini App работает внутри интерфейса Telegram!
+          Протестируйте нативный переход: кликните на ссылку в посте или на закрепленное сообщение, зайдите в ветку комментариев и запустите светлую Mini App шторку каталога!
         </p>
       </div>
 
@@ -218,13 +227,13 @@ export default function Simulator() {
                 }`}
               >
                 {/* Channel App Header */}
-                <div className="bg-white border-b border-slate-100 py-2.5 px-4 flex items-center justify-between shrink-0">
+                <div className="bg-white border-b border-slate-100 py-2 px-4 flex items-center justify-between shrink-0 select-none">
                   <div className="flex items-center gap-2.5">
-                    <ChevronLeft className="w-5 h-5 text-tg" />
+                    <ChevronLeft className="w-5 h-5 text-tg cursor-pointer" />
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-tg to-tg-dark flex items-center justify-center text-white font-bold text-sm">
                       U
                     </div>
-                    <div>
+                    <div className="text-left">
                       <p className="font-semibold text-xs leading-tight text-slate-900 flex items-center gap-1">
                         Urban Store 
                         <span className="w-2.5 h-2.5 bg-tg rounded-full inline-flex items-center justify-center"><Check className="w-1.5 h-1.5 text-white" /></span>
@@ -239,11 +248,14 @@ export default function Simulator() {
                 </div>
 
                 {/* Pinned Message Bar */}
-                <div className="bg-white px-3.5 py-1.5 border-b border-slate-200/80 flex items-center justify-between shrink-0 select-none cursor-pointer">
+                <div 
+                  onClick={handlePinnedClick}
+                  className="bg-white px-3.5 py-1.5 border-b border-slate-200/80 flex items-center justify-between shrink-0 select-none cursor-pointer hover:bg-slate-50 transition-colors"
+                >
                   <div className="flex items-center gap-2 border-l-2 border-tg pl-2 min-w-0">
                     <div className="flex flex-col text-left">
                       <span className="text-[9px] text-tg font-bold leading-tight">Закрепленное сообщение</span>
-                      <span className="text-[8px] text-slate-500 truncate max-w-[200px] leading-tight font-medium">
+                      <span className="text-[8px] text-slate-500 truncate max-w-[190px] leading-tight font-medium">
                         🔥 Дроп Urban Wear 2026: Выбирайте размеры товаров...
                       </span>
                     </div>
@@ -251,33 +263,44 @@ export default function Simulator() {
                   <X className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 shrink-0" />
                 </div>
 
-                {/* Feed Feed */}
-                <div className="flex-1 bg-tg-wallpaper p-3 overflow-y-auto space-y-4 phone-scrollbar">
+                {/* Feed (aligned to bottom, no empty bottom spacing!) */}
+                <div 
+                  ref={feedRef}
+                  className="flex-1 bg-tg-wallpaper p-3 overflow-y-auto phone-scrollbar flex flex-col justify-end space-y-3"
+                >
                   {/* Day Separator */}
-                  <div className="text-center my-2">
-                    <span className="bg-slate-900/10 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-full select-none">
+                  <div className="text-center my-1.5">
+                    <span className="bg-slate-900/10 text-slate-600 text-[9px] font-bold px-2.5 py-0.5 rounded-full select-none">
                       Thursday
                     </span>
+                  </div>
+
+                  {/* Older post representing Pinned content */}
+                  <div className="bg-white rounded-2xl rounded-tr-none border border-slate-200/60 p-3 shadow-xs text-left max-w-[85%] self-start opacity-70">
+                    <p className="text-[9px] text-slate-500 font-semibold mb-1">📌 Закрепленный гайд</p>
+                    <p className="text-[9px] text-slate-600 leading-normal">
+                      Таблица размеров и инструкция по оформлению заказов через Mini App находится в этой ветке. Жмите на кнопку ниже.
+                    </p>
                   </div>
 
                   {/* Channel Post Card Layout */}
                   <div className="flex items-end gap-1.5 max-w-full">
                     <div className="bg-white rounded-2xl rounded-tr-none border border-slate-200/80 shadow-xs flex-grow overflow-hidden text-left">
                       <div className="p-3">
-                        <h4 className="font-bold text-[11px] text-slate-800 mb-1">Почему Mini App?</h4>
-                        <p className="text-[10px] text-slate-600 leading-normal mb-2">
+                        <h4 className="font-bold text-[10px] text-slate-800 mb-1">Почему Mini App?</h4>
+                        <p className="text-[9px] text-slate-600 leading-normal mb-2">
                           Покупка в 3 клика без перехода во внешние браузеры. Каждый лишний переход — это потеря клиента. Внутри Telegram конверсия возрастает в 3 раза!
                         </p>
-                        <h4 className="font-bold text-[11px] text-slate-800 mb-1">Что делать?</h4>
-                        <p className="text-[10px] text-slate-600 leading-normal mb-2.5">
+                        <h4 className="font-bold text-[10px] text-slate-800 mb-1">Что делать?</h4>
+                        <p className="text-[9px] text-slate-600 leading-normal mb-2.5">
                           Запустить каталог, который открывается мгновенно.
                         </p>
-                        <p className="text-[10px] text-slate-800 font-semibold mb-3 leading-normal">
+                        <p className="text-[9.5px] text-slate-800 font-semibold mb-2.5 leading-normal">
                           Лови 👉 <span onClick={handleOpenCatalog} className="text-tg font-bold underline hover:text-tg-dark cursor-pointer inline-flex items-center gap-0.5">Открыть каталог 🛍</span>
                         </p>
 
                         {/* Bottom Info & Views */}
-                        <div className="flex items-center justify-between text-[8px] text-slate-400 font-medium select-none mt-4 border-t border-slate-100/50 pt-2">
+                        <div className="flex items-center justify-between text-[8px] text-slate-400 font-medium select-none mt-3.5 border-t border-slate-100/50 pt-2">
                           <span className="flex items-center gap-1">
                             <span>27.8K views</span>
                             <span>·</span>
@@ -287,7 +310,7 @@ export default function Simulator() {
                         </div>
 
                         {/* Reactions Block */}
-                        <div className="flex items-center gap-1.5 mt-3 select-none">
+                        <div className="flex items-center gap-1.5 mt-2.5 select-none">
                           <button 
                             onClick={() => handleToggleReaction("star")}
                             className={`px-2 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
@@ -324,15 +347,18 @@ export default function Simulator() {
                         </div>
                       </div>
 
-                      {/* Comments Strip */}
-                      <div className="border-t border-slate-100 px-3 py-2 flex items-center justify-between bg-slate-50/50 hover:bg-slate-50 transition-colors duration-200 cursor-pointer">
+                      {/* Comments Strip (goes to comments view!) */}
+                      <div 
+                        onClick={() => setView("comments")}
+                        className="border-t border-slate-100 px-3 py-2 flex items-center justify-between bg-slate-50/50 hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+                      >
                         <div className="flex items-center gap-1.5">
                           <div className="flex -space-x-1.5 select-none">
                             <div className="w-4.5 h-4.5 rounded-full border border-white bg-indigo-400 flex items-center justify-center text-[7px] font-bold text-white shrink-0">A</div>
                             <div className="w-4.5 h-4.5 rounded-full border border-white bg-rose-400 flex items-center justify-center text-[7px] font-bold text-white shrink-0">M</div>
                             <div className="w-4.5 h-4.5 rounded-full border border-white bg-emerald-500 flex items-center justify-center text-[7px] font-bold text-white shrink-0">K</div>
                           </div>
-                          <span className="text-[10px] text-tg font-bold">15 comments</span>
+                          <span className="text-[10px] text-tg font-bold">15 комментариев</span>
                         </div>
                         <ChevronLeft className="w-3.5 h-3.5 text-tg rotate-180" />
                       </div>
@@ -342,6 +368,80 @@ export default function Simulator() {
                     <button className="w-8 h-8 rounded-full bg-[#75B079] hover:bg-[#649c68] text-white flex items-center justify-center shrink-0 cursor-pointer shadow-sm select-none">
                       <CornerUpRight className="w-3.5 h-3.5 translate-x-[1px]" />
                     </button>
+                  </div>
+                </div>
+
+                {/* Channel Bottom Mute Bar */}
+                <div className="h-11 border-t border-slate-200/80 bg-white px-4 flex items-center justify-between shrink-0 select-none cursor-pointer">
+                  <Search className="w-4 h-4 text-slate-400 hover:text-slate-600" />
+                  <span className="text-xs font-semibold text-tg hover:text-tg-dark">Включить звук</span>
+                  <div className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-slate-600 text-xs">🎁</div>
+                </div>
+              </div>
+
+              {/* ===== VIEW 1.5: COMMENT CORRESPONDENCE VIEW ===== */}
+              <div 
+                className={`absolute inset-0 flex flex-col transition-all duration-300 ${
+                  view === "comments" 
+                    ? "opacity-100 scale-100 pointer-events-auto" 
+                    : "opacity-0 scale-95 pointer-events-none"
+                }`}
+              >
+                {/* Comments Header */}
+                <div className="bg-white border-b border-slate-100 py-2 px-4 flex items-center justify-between shrink-0 select-none">
+                  <div className="flex items-center gap-2.5">
+                    <ChevronLeft onClick={() => setView("channel")} className="w-5 h-5 text-tg cursor-pointer" />
+                    <div>
+                      <p className="font-semibold text-xs leading-tight text-slate-900">Комментарии</p>
+                      <p className="text-[9px] text-slate-400 leading-tight">Urban Store</p>
+                    </div>
+                  </div>
+                  <MoreVertical className="w-4 h-4 text-slate-500" />
+                </div>
+
+                {/* Comments Scroll Area */}
+                <div className="flex-1 bg-tg-wallpaper p-3 overflow-y-auto phone-scrollbar flex flex-col justify-end space-y-3">
+                  
+                  {/* Comment 1: Daniil */}
+                  <div className="flex items-start gap-2 max-w-[85%] self-start">
+                    <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">Д</div>
+                    <div className="bg-white rounded-xl rounded-tl-none border border-slate-200/60 p-2.5 shadow-xs text-left">
+                      <p className="text-[8px] font-bold text-blue-600 mb-0.5">Даниил</p>
+                      <p className="text-[10px] text-slate-700 leading-snug">Слушайте, а размеры соответствуют европейской таблице?</p>
+                      <p className="text-[7px] text-slate-400 text-right mt-1">17:34</p>
+                    </div>
+                  </div>
+
+                  {/* Comment 2: Manager Anna */}
+                  <div className="flex items-start gap-2 max-w-[85%] self-start">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-ig-violet to-ig-pink flex items-center justify-center text-white text-[9px] font-bold shrink-0">А</div>
+                    <div className="bg-white rounded-xl rounded-tl-none border border-slate-200/60 p-2.5 shadow-xs text-left">
+                      <p className="text-[8px] font-bold text-ig-violet mb-0.5 flex items-center gap-1">
+                        Менеджер Анна 
+                        <span className="bg-tg/10 text-tg text-[6px] px-1 rounded-sm">admin</span>
+                      </p>
+                      <p className="text-[10px] text-slate-700 leading-snug">Да, Даниил! Размеры стандартные. Полную размерную сетку можно посмотреть в каталоге при выборе размера.</p>
+                      <p className="text-[7px] text-slate-400 text-right mt-1">17:35</p>
+                    </div>
+                  </div>
+
+                  {/* Comment 3: Kirill */}
+                  <div className="flex items-start gap-2 max-w-[85%] self-start">
+                    <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">К</div>
+                    <div className="bg-white rounded-xl rounded-tl-none border border-slate-200/60 p-2.5 shadow-xs text-left">
+                      <p className="text-[8px] font-bold text-emerald-600 mb-0.5">Кирилл</p>
+                      <p className="text-[10px] text-slate-700 leading-snug">Очень удобно покупать прямо в чате! Нажал, выбрал размер и готово 🙌</p>
+                      <p className="text-[7px] text-slate-400 text-right mt-1">17:36</p>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Comments Input Bar */}
+                <div className="px-3 py-2 border-t border-slate-100 bg-white flex items-center gap-2 shrink-0">
+                  <div className="flex-grow bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400">Прокомментировать...</span>
+                    <Smile className="w-4 h-4 text-slate-400" />
                   </div>
                 </div>
               </div>
@@ -418,76 +518,96 @@ export default function Simulator() {
                 </div>
               </div>
 
-              {/* ===== TELEGRAM WEB APP SHEET OVERLAY ===== */}
+              {/* ===== LIGHT-THEMED TELEGRAM WEB APP SHEET OVERLAY (MATCHING SCREENSHOT) ===== */}
               <div 
-                className={`absolute inset-x-0 bottom-0 top-[0px] bg-white rounded-t-2xl shadow-2xl z-40 flex flex-col overflow-hidden transition-transform duration-500 ease-out-quint ${
+                className={`absolute inset-x-0 bottom-0 top-[0px] bg-slate-50 shadow-2xl z-40 flex flex-col overflow-hidden transition-transform duration-500 ease-out-quint ${
                   webAppOpen ? "translate-y-0" : "translate-y-full"
                 }`}
               >
                 {/* Sheet Handle */}
                 <div className="w-8 h-1 bg-slate-200 rounded-full mx-auto my-2 shrink-0"></div>
 
-                {/* Web App Header */}
-                <div className="border-b border-slate-100 pb-2 px-4 flex items-center justify-between shrink-0">
+                {/* Web App Header Block */}
+                <div className="bg-white border-b border-slate-100 pb-2.5 pt-1 px-4 flex items-center justify-between shrink-0 select-none">
                   <button 
                     onClick={handleCloseCatalog}
-                    className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                    className="text-tg hover:text-tg-dark text-xs font-semibold cursor-pointer"
                   >
-                    <X className="w-5 h-5" />
+                    Закрыть
                   </button>
-                  <p className="font-bold text-xs text-slate-800">Urban Store Catalog</p>
-                  <button className="text-slate-400 hover:text-slate-600 p-1">
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
+                  <div className="text-center">
+                    <p className="font-bold text-xs text-slate-900 leading-tight">URBAN STORE</p>
+                    <p className="text-[8px] text-slate-400 leading-tight">мини-приложение</p>
+                  </div>
+                  <div className="w-6 h-6 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer hover:bg-slate-50">
+                    <MoreVertical className="w-3.5 h-3.5" />
+                  </div>
                 </div>
 
                 {/* Catalog scroll content */}
-                <div className="flex-grow overflow-y-auto px-4 py-4 space-y-3 phone-scrollbar bg-slate-50/50">
-                  {PRODUCTS.map((product) => {
-                    const addedItem = cart.find(item => item.id === product.id);
-                    const isAdded = !!addedItem;
-                    const IconComponent = product.icon;
-                    return (
-                      <div 
-                        key={product.id}
-                        className="bg-white border border-slate-100 rounded-2xl p-3.5 flex gap-3.5 items-center transition-colors duration-200 hover:border-ig-violet/40 shadow-xs"
-                      >
-                        <div className={`w-14 h-14 rounded-xl shrink-0 flex items-center justify-center ${product.gradClass}`}>
-                          <IconComponent className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate text-slate-900">{product.name}</p>
-                          <p className="text-xs text-slate-500 mb-2 font-mono">{product.price.toLocaleString("ru-RU")} ₽</p>
+                <div className="flex-grow overflow-y-auto px-4 py-4 space-y-4 phone-scrollbar">
+                  
+                  {/* Brand Row */}
+                  <div className="flex items-center justify-between select-none">
+                    <span className="font-display font-extrabold text-[11px] text-slate-800 tracking-wider">URBAN STORE</span>
+                    
+                    {/* Cart pill indicator */}
+                    <div className="bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-full px-3 py-1 text-[10px] font-mono font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs">
+                      <ShoppingBag className="w-3.5 h-3.5 text-slate-500" />
+                      <span>{cartTotal.toLocaleString("ru-RU")} ₽</span>
+                    </div>
+                  </div>
+
+                  {/* Large Hero Drop Banner Card */}
+                  <div className="grad-tg rounded-2xl p-4 text-white text-left relative overflow-hidden select-none shadow-sm">
+                    <div className="absolute right-[-10px] bottom-[-15px] opacity-15">
+                      <ShoppingBag className="w-24 h-24 text-white" />
+                    </div>
+                    <p className="bg-white/20 text-white font-mono text-[8px] font-bold px-1.5 py-0.5 rounded-sm inline-block mb-2">ДРОП 2026</p>
+                    <h4 className="font-display font-extrabold text-sm leading-tight mb-1 uppercase tracking-tight">Летний каталог одежды</h4>
+                    <p className="text-[9px] text-white/80 leading-normal max-w-[70%]">
+                      Свежие релизы худи, кроссовок и кепок в Telegram. Добавляйте в корзину и оформляйте заказ!
+                    </p>
+                  </div>
+
+                  {/* Grid of Product Cards (Matching layout from screenshot) */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {PRODUCTS.map((product) => {
+                      const addedItem = cart.find(item => item.id === product.id);
+                      const isAdded = !!addedItem;
+                      const IconComponent = product.icon;
+                      return (
+                        <div 
+                          key={product.id}
+                          className="bg-white border border-slate-200/80 rounded-2xl p-3 flex flex-col items-center text-center shadow-2xs hover:border-tg/50 transition-colors"
+                        >
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2.5 ${product.gradClass}`}>
+                            <IconComponent className="w-6 h-6 text-white" />
+                          </div>
+                          
+                          <p className="text-[10px] font-bold text-slate-800 truncate w-full mb-0.5">{product.name}</p>
+                          <p className="text-[9px] text-slate-400 font-mono mb-2.5">{product.price.toLocaleString("ru-RU")} ₽</p>
+                          
                           <button
                             onClick={() => triggerSizeSelector(product)}
                             disabled={isAdded}
-                            className={`w-full text-[11px] font-semibold py-2 rounded-lg transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer ${
+                            className={`w-full rounded-full py-1.5 text-[9px] font-semibold transition-all duration-200 cursor-pointer ${
                               isAdded 
                                 ? "bg-emerald-600 text-white cursor-default" 
-                                : "bg-tg/10 text-tg hover:bg-tg hover:text-white"
+                                : "bg-tg text-white hover:bg-tg-dark"
                             }`}
                           >
-                            {isAdded ? (
-                              <>
-                                <Check className="w-3 h-3" />
-                                Добавлено ({addedItem.size})
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="w-3.5 h-3.5" />
-                                Выбрать и добавить
-                              </>
-                            )}
+                            {isAdded ? `Добавлено` : "Выбрать"}
                           </button>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* Shopping Cart Bar inside Web App */}
+                {/* Cart checkout section bar */}
                 <div 
-                  className={`px-4 py-4 border-t border-slate-100 bg-white transition-all duration-300 ${
+                  className={`px-4 py-4 border-t border-slate-100 bg-white transition-all duration-300 shrink-0 ${
                     cart.length > 0 ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
                   }`}
                 >
@@ -504,6 +624,22 @@ export default function Simulator() {
                   </button>
                 </div>
 
+                {/* Simulated Bottom Navigation Tab Bar (matching screenshot layout) */}
+                <div className="h-12 border-t border-slate-100 bg-white px-8 flex items-center justify-between shrink-0 select-none">
+                  <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <LifeBuoy className="w-4 h-4" />
+                    <span className="text-[8px] font-medium leading-none mt-0.5">ПОМОЩЬ</span>
+                  </button>
+                  <button className="flex flex-col items-center gap-1 text-tg cursor-default">
+                    <ShoppingBag className="w-4 h-4" />
+                    <span className="text-[8px] font-bold leading-none mt-0.5">ГЛАВНАЯ</span>
+                  </button>
+                  <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="text-[8px] font-medium leading-none mt-0.5">ЕЩЕ</span>
+                  </button>
+                </div>
+
                 {/* Nested size selection drawer */}
                 <div 
                   className={`absolute inset-0 bg-black/45 z-50 transition-opacity duration-300 flex flex-col justify-end ${
@@ -516,7 +652,7 @@ export default function Simulator() {
                     }`}
                   >
                     <div className="w-8 h-1 bg-slate-200 rounded-full mx-auto mb-4 shrink-0"></div>
-                    <h4 className="font-bold text-xs text-slate-800 mb-3">
+                    <h4 className="font-bold text-xs text-slate-800 mb-3 text-left">
                       Выберите размер: {sizeSelectorProduct?.name}
                     </h4>
                     
@@ -563,25 +699,25 @@ export default function Simulator() {
         {/* Steps and Explanation beside Simulator */}
         <div className="max-w-md space-y-6">
           <div className="flex gap-4">
-            <div className="w-9 h-9 rounded-full bg-tg/10 flex items-center justify-center shrink-0 font-mono text-xs text-tg font-bold animate-pulse">
+            <div className="w-9 h-9 rounded-full bg-tg/10 flex items-center justify-center shrink-0 font-mono text-xs text-tg font-bold">
               1
             </div>
             <div>
               <p className="font-semibold text-text-primary mb-1">Переход из Telegram-канала</p>
               <p className="text-sm text-text-secondary leading-relaxed">
-                Клиент видит рекламный пост в канале и нажимает кнопку открытия магазина. Нет переходов во внешние браузеры.
+                Кликните на синюю ссылку-переходник в сообщении или нажмите на закрепленное сообщение вверху, чтобы сфокусировать каталог.
               </p>
             </div>
           </div>
 
           <div className="flex gap-4">
-            <div className="w-9 h-9 rounded-full bg-ig-violet/10 flex items-center justify-center shrink-0 font-mono text-xs text-ig-violet font-bold">
+            <div className="w-9 h-9 rounded-full bg-ig-violet/10 flex items-center justify-center shrink-0 font-mono text-xs text-ig-violet font-bold animate-pulse">
               2
             </div>
             <div>
-              <p className="font-semibold text-text-primary mb-1">Мгновенное открытие Mini App</p>
+              <p className="font-semibold text-text-primary mb-1">Вход в обсуждение</p>
               <p className="text-sm text-text-secondary leading-relaxed">
-                Каталог выезжает снизу как нативный элемент мессенджера. Пользователь выбирает конкретные размеры товаров и добавляет их в корзину.
+                Нажмите на кнопку комментариев внизу поста, чтобы открыть ветку обсуждения с ответами менеджера.
               </p>
             </div>
           </div>
@@ -591,9 +727,9 @@ export default function Simulator() {
               3
             </div>
             <div>
-              <p className="font-semibold text-text-primary mb-1">Заявка отправляется в чат</p>
+              <p className="font-semibold text-text-primary mb-1">Светлый нативный Mini App</p>
               <p className="text-sm text-text-secondary leading-relaxed">
-                После оформления заказа Web App автоматически сворачивается, отправляя в личные сообщения менеджеру готовый список товаров с размерами.
+                Каталог оформлен в чистом светлом стиле: содержит шапку с кнопкой «Закрыть», баланс-карту корзины, рекламный промо-баннер и плиточную сетку товаров.
               </p>
             </div>
           </div>
