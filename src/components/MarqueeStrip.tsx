@@ -6,7 +6,7 @@ export default function MarqueeStrip() {
   const niches = ["E-commerce", "Услуги", "Retail", "Доставка еды", "Beauty", "Онлайн-школы"];
 
   return (
-    <section className="py-10 border-y border-white/5 overflow-hidden bg-slate-950/40">
+    <section className="py-10 border-y border-slate-200/80 overflow-hidden bg-slate-100/50">
       <div className="relative flex w-full">
         {/* Marquee Track Container */}
         <div className="marquee-track flex whitespace-nowrap font-mono text-xs sm:text-sm text-text-secondary gap-16 select-none animate-marquee">

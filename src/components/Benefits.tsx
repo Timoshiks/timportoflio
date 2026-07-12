@@ -39,7 +39,7 @@ const BENEFITS: BenefitCard[] = [
 
 export default function Benefits() {
   return (
-    <section className="relative py-24 px-6 max-w-7xl mx-auto border-t border-white/5 bg-noise">
+    <section className="relative py-24 px-6 max-w-7xl mx-auto border-t border-slate-200/80 bg-noise">
       <div className="text-center max-w-2xl mx-auto mb-16">
         <p className="font-mono text-xs text-ig-pink uppercase tracking-widest mb-3">Почему это работает</p>
         <h2 className="font-display font-bold text-3xl sm:text-4xl text-text-primary">
@@ -53,7 +53,7 @@ export default function Benefits() {
           return (
             <div 
               key={idx}
-              className="card-premium rounded-3xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-1"
+              className="card-premium rounded-3xl p-8 transition-all duration-300 group hover:-translate-y-1"
             >
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300 ${benefit.gradClass}`}>
                 <IconComponent className="w-5.5 h-5.5 text-white" />

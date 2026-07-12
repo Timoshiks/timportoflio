@@ -15,7 +15,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative border-t border-white/5 bg-slate-950/80 pt-28 pb-12 px-6">
+    <footer className="relative border-t border-slate-200 bg-white pt-28 pb-12 px-6">
       {/* Background ambient glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[350px] sm:w-[500px] h-[300px] bg-ig-violet/10 blur-[110px] rounded-full -z-10"></div>
       
@@ -41,7 +41,7 @@ export default function Footer() {
               placeholder="Ваш Telegram или e-mail"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
-              className="flex-1 bg-slate-900/60 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-text-primary focus:border-ig-violet/60 focus:outline-none transition-colors placeholder:text-text-muted"
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-900 focus:border-ig-violet/60 focus:outline-none transition-colors placeholder:text-slate-400"
             />
             <button
               type="submit"
@@ -55,7 +55,7 @@ export default function Footer() {
       </div>
 
       {/* Footer Branding & Legal */}
-      <div className="max-w-7xl mx-auto border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-muted">
+      <div className="max-w-7xl mx-auto border-t border-slate-200/80 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-muted">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md grad-tg flex items-center justify-center">
             <Zap className="w-3 h-3 text-white" />

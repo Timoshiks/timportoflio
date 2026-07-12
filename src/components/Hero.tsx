@@ -13,7 +13,7 @@ export default function Hero() {
       <div className="absolute -left-20 top-20 w-[400px] h-[400px] bg-tg/5 blur-[120px] rounded-full -z-10"></div>
       <div className="grid lg:grid-cols-2 gap-16 items-center">
         <div className="flex flex-col items-start">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/5 text-xs font-mono text-text-secondary mb-6 bg-white/5">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 text-xs font-mono text-text-secondary mb-6 bg-white shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             Telegram Mini Apps · Instagram Web App
           </div>
@@ -43,31 +43,31 @@ export default function Hero() {
 
         <div className="relative">
           <div className="absolute -inset-4 grad-ig opacity-10 blur-[100px] rounded-full"></div>
-          <div className="relative card-premium rounded-3xl p-6 lg:p-8 border border-white/10">
+          <div className="relative card-premium rounded-3xl p-6 lg:p-8">
             <div className="flex items-center gap-2 mb-6 text-xs font-mono text-text-secondary">
               <MessageSquare className="w-4 h-4 text-tg" />
               СРАВНЕНИЕ КОНВЕРСИИ
             </div>
             
             <div className="space-y-6">
-              <div className="flex items-start gap-3 bg-red-500/5 p-4 rounded-2xl border border-red-500/10">
-                <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <X className="w-4 h-4 text-red-500" />
+              <div className="flex items-start gap-3 bg-red-50 p-4 rounded-2xl border border-red-100/80">
+                <div className="w-8 h-8 rounded-full bg-red-100/50 flex items-center justify-center shrink-0 mt-0.5">
+                  <X className="w-4 h-4 text-red-600" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-red-400 mb-1">КАК У ВСЕХ (ПОТЕРИ)</h4>
+                  <h4 className="font-semibold text-sm text-red-600 mb-1">КАК У ВСЕХ (ПОТЕРИ)</h4>
                   <p className="text-sm text-text-secondary leading-relaxed">
                     Клиент копирует ссылку → открывает браузер → долго грузится сайт → отвлекается на уведомления → уходит к конкурентам.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <Check className="w-4 h-4 text-emerald-500" />
+              <div className="flex items-start gap-3 bg-emerald-50 p-4 rounded-2xl border border-emerald-100/80">
+                <div className="w-8 h-8 rounded-full bg-emerald-100/50 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-emerald-400 mb-1">C MINI APP (МАКСИМУМ ПРОДАЖ)</h4>
+                  <h4 className="font-semibold text-sm text-emerald-600 mb-1">C MINI APP (МАКСИМУМ ПРОДАЖ)</h4>
                   <p className="text-sm text-text-secondary leading-relaxed">
                     Клиент нажимает кнопку в чате → мгновенно видит каталог внутри соцсети → оформляет заказ за 3 клика, не выходя из переписки.
                   </p>

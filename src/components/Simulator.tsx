@@ -111,7 +111,7 @@ export default function Simulator() {
   };
 
   return (
-    <section id="simulator" className="relative py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+    <section id="simulator" className="relative py-24 px-6 max-w-7xl mx-auto border-t border-slate-200/80">
       <div className="text-center max-w-2xl mx-auto mb-16">
         <p className="font-mono text-xs text-tg uppercase tracking-widest mb-3">Живой пример</p>
         <h2 className="font-display font-bold text-3xl sm:text-4xl mb-4 text-text-primary">
@@ -137,7 +137,7 @@ export default function Simulator() {
             </div>
 
             {/* Screen Content Wrapper */}
-            <div className="relative flex-1 bg-slate-950 flex flex-col text-slate-100 font-sans">
+            <div className="relative flex-1 bg-white flex flex-col text-slate-900 font-sans">
               
               {/* VIEW 1: CATALOG */}
               <div 
@@ -166,14 +166,14 @@ export default function Simulator() {
                     return (
                       <div 
                         key={product.id}
-                        className="bg-slate-900/60 border border-white/5 rounded-2xl p-3.5 flex gap-3.5 items-center transition-colors duration-200 hover:border-ig-violet/40"
+                        className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex gap-3.5 items-center transition-colors duration-200 hover:border-ig-violet/40 hover:bg-white shadow-sm"
                       >
                         <div className={`w-14 h-14 rounded-xl shrink-0 flex items-center justify-center ${product.gradClass}`}>
                           <IconComponent className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate text-text-primary">{product.name}</p>
-                          <p className="text-xs text-text-secondary mb-2 font-mono">{product.price.toLocaleString("ru-RU")} ₽</p>
+                          <p className="text-sm font-semibold truncate text-slate-900">{product.name}</p>
+                          <p className="text-xs text-slate-500 mb-2 font-mono">{product.price.toLocaleString("ru-RU")} ₽</p>
                           <button
                             onClick={() => handleAddToCart(product.id, product.name, product.price)}
                             disabled={isAdded}
@@ -203,13 +203,13 @@ export default function Simulator() {
 
                 {/* Shopping Cart Bar inside Simulator */}
                 <div 
-                  className={`px-4 py-4 border-t border-white/5 bg-slate-950/95 transition-all duration-300 ${
+                  className={`px-4 py-4 border-t border-slate-100 bg-white/95 shadow-md transition-all duration-300 ${
                     cart.length > 0 ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-3 text-xs">
-                    <span className="text-text-secondary">{getCartPluralText(cart.length)}</span>
-                    <span className="font-mono text-text-primary font-semibold">{cartTotal.toLocaleString("ru-RU")} ₽</span>
+                    <span className="text-slate-500">{getCartPluralText(cart.length)}</span>
+                    <span className="font-mono text-slate-900 font-semibold">{cartTotal.toLocaleString("ru-RU")} ₽</span>
                   </div>
                   <button 
                     onClick={handleCheckout}
@@ -247,7 +247,7 @@ export default function Simulator() {
                 </div>
 
                 {/* Chat Message Stream */}
-                <div className="flex-1 px-4 py-4 flex flex-col justify-end gap-3 bg-[#0a0d16] overflow-y-auto">
+                <div className="flex-1 px-4 py-4 flex flex-col justify-end gap-3 bg-slate-100 overflow-y-auto">
                   
                   {/* Automated Outgoing Order Message */}
                   <div className="self-end max-w-[85%] bg-tg text-white text-[13px] leading-snug rounded-2xl rounded-br-sm px-3.5 py-2.5 animate-fade-up">
@@ -264,24 +264,24 @@ export default function Simulator() {
 
                   {/* Typing dot animation */}
                   {showTyping && (
-                    <div className="self-start bg-slate-900 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1 items-center animate-fade-up">
-                      <span className="w-1.5 h-1.5 rounded-full bg-text-secondary animate-blink"></span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-text-secondary animate-blink [animation-delay:0.2s]"></span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-text-secondary animate-blink [animation-delay:0.4s]"></span>
+                    <div className="self-start bg-white border border-slate-200/80 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1 items-center shadow-sm animate-fade-up">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-blink"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-blink [animation-delay:0.2s]"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-blink [animation-delay:0.4s]"></span>
                     </div>
                   )}
 
                   {/* Incoming Reply Message */}
                   {showReply && (
-                    <div className="self-start max-w-[85%] bg-slate-900 border border-white/5 text-text-primary text-[13px] leading-snug rounded-2xl rounded-bl-sm px-3.5 py-2.5 animate-fade-up">
+                    <div className="self-start max-w-[85%] bg-white border border-slate-200/80 text-slate-800 text-[13px] leading-snug rounded-2xl rounded-bl-sm px-3.5 py-2.5 shadow-sm animate-fade-up">
                       Приняла заказ 🙌 Уточните адрес доставки, и уже сегодня отправим!
                     </div>
                   )}
                 </div>
 
                 {/* Bottom simulated input area */}
-                <div className="px-4 py-3 border-t border-white/5 bg-slate-950 flex items-center gap-2 shrink-0">
-                  <div className="flex-1 bg-slate-900 rounded-full px-4 py-2.5 text-[10px] text-text-muted select-none">
+                <div className="px-4 py-3 border-t border-slate-100 bg-white flex items-center gap-2 shrink-0">
+                  <div className="flex-1 bg-slate-50 rounded-full px-4 py-2.5 text-[10px] text-slate-400 select-none">
                     Сообщение отправлено автоматически
                   </div>
                   <div className="w-9 h-9 rounded-full grad-tg flex items-center justify-center shrink-0">
